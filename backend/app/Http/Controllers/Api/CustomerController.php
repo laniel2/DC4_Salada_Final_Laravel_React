@@ -15,8 +15,11 @@ class CustomerController extends Controller
             ->when(
                 $request->search,
                 fn ($query, $search) => $query
-                    ->where('name', 'like', "%$search%")
-                    ->orWhere('phone', 'like', "%$search%")
+                    ->where(function ($searchQuery) use ($search) {
+                        $searchQuery
+                            ->where('name', 'like', "%$search%")
+                            ->orWhere('phone', 'like', "%$search%");
+                    })
             )
             ->latest()
             ->paginate(10);

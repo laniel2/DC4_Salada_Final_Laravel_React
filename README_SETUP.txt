@@ -58,6 +58,7 @@ Default seeded login:
   Password: password
   Staff: staff@example.com
   Password: password
+Customer: register through the Create a customer account link.
 Change these passwords before using real customer data.
 
 SETUP PART 3 — FRONTEND
@@ -68,16 +69,41 @@ SETUP PART 3 — FRONTEND
 3. Start React:
    npm run dev
 4. Open the URL shown by Vite (normally http://localhost:5173).
-5. Log in using one of the sample accounts above.
+5. Sign in with one of the sample accounts above, or choose **Create a customer
+   account** to register a customer login.
+
+FRONTEND ROLE WORKSPACES
+- Admins land on the shop dashboard with daily sales and can manage staff and
+  customer accounts from the Accounts link. The Shop records page provides CRUD
+  forms for customers, services, orders, order items, measurements, and payments.
+- Staff land on their assigned jobs page, where they can update progress,
+  search customers, and view measurements.
+- Customers land on their account page to update contact details and view their
+  orders, due dates, payment history, and balance due.
 
 API / POSTMAN
-- POST /api/login { "email": "admin@example.com", "password": "password" }
-- GET /api/user (Bearer token)
-- GET /api/customers (Bearer token)
-- GET /api/services (Bearer token)
-- GET /api/orders (Bearer token)
-- GET /api/dashboard (Bearer token)
-- POST /api/logout (Bearer token)
+- Import `backend/postman/Tailoring-Management-System.postman_collection.json`
+  and `backend/postman/Tailoring-Management-System.postman_environment.json`
+  into Postman. Select the imported local environment.
+- Run the collection after `php artisan migrate --seed` and while the API is
+  running. It tests registration, admin/staff/customer authorization, customer
+  order and payment views, the main CRUD requests, then removes its test data.
+- Set the environment's `baseUrl` variable if the Laravel API uses a different
+  address. The default is `http://127.0.0.1:8000/api`.
+- Authentication: `POST /api/register` creates a customer account;
+  `POST /api/login`, `GET /api/user`, and `POST /api/logout` use Sanctum tokens.
+- Admin: full CRUD for customers, services, orders, order items, measurements,
+  and payments; account management at `/api/admin/accounts`; dashboard at
+  `GET /api/dashboard`; date-filtered payment sales report at
+  `GET /api/admin/reports/sales?from=YYYY-MM-DD&to=YYYY-MM-DD`.
+- Tailor/staff: search and view customers, measurements, and services; view only
+  assigned orders; update assigned order progress with
+  `PATCH /api/orders/{order}/status`.
+- Customer: view/update their own `/api/customer/profile`, `/api/customer/orders`,
+  and `/api/customer/payments`. Order and payment responses include the
+  remaining balance.
+- All role-specific endpoints require a Bearer token. Staff/customer roles are
+  assigned server-side; public registration cannot select a privileged role.
 
 If the browser reports a CORS error, ensure Laravel is running on 127.0.0.1:8000
 and check config/cors.php. Clear cached configuration with:

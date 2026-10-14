@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Message from '../components/Message'
 
@@ -56,7 +56,13 @@ export default function Login() {
           />
         </label>
         <button disabled={busy}>{busy ? 'Signing in...' : 'Sign in'}</button>
-        <small>Demo: admin@example.com / password</small>
+        <div className="demo-credentials">
+          <small>Admin: admin@example.com / password</small>
+          <small>Staff: staff@example.com / password</small>
+        </div>
+        <p className="auth-switch">
+          Customer? <Link to="/register">Create a customer account</Link>
+        </p>
       </form>
     </main>
   )

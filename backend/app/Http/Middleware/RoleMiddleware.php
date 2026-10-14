@@ -5,7 +5,12 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 class RoleMiddleware {
  public function handle(Request $request, Closure $next, string $role): Response {
-  if (!$request->user() || $request->user()->role !== $role) return response()->json(['message'=>'Forbidden'], 403);
+  $allowedRoles = explode('|', $role);
+
+  if (!$request->user() || !in_array($request->user()->role, $allowedRoles, true)) {
+   return response()->json(['message' => 'Forbidden'], 403);
+  }
+
   return $next($request);
  }
 }

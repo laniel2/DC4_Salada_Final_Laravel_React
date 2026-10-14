@@ -19,6 +19,13 @@ export function AuthProvider({ children }) {
     setUser(data.user)
   }
 
+  async function register(details) {
+    const { data } = await api.post('/register', details)
+    localStorage.setItem('tailoring_token', data.token)
+    localStorage.setItem('tailoring_user', JSON.stringify(data.user))
+    setUser(data.user)
+  }
+
   async function logout() {
     try {
       await api.post('/logout')
@@ -30,7 +37,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   )

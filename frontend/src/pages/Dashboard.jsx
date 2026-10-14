@@ -6,14 +6,20 @@ import Message from '../components/Message'
 export default function Dashboard() {
   const [stats, setStats] = useState({})
   const [orders, setOrders] = useState([])
+  const [salesReport, setSalesReport] = useState({ daily_sales: [] })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([api.get('/dashboard'), api.get('/orders')])
-      .then(([statsResponse, ordersResponse]) => {
+    Promise.all([
+      api.get('/dashboard'),
+      api.get('/orders'),
+      api.get('/admin/reports/sales'),
+    ])
+      .then(([statsResponse, ordersResponse, salesResponse]) => {
         setStats(statsResponse.data)
         setOrders(ordersResponse.data.data || ordersResponse.data)
+        setSalesReport(salesResponse.data)
       })
       .catch(() =>
         setError(
@@ -47,6 +53,33 @@ export default function Dashboard() {
               value={`₱${Number(stats.payments_received || 0).toLocaleString()}`}
             />
           </div>
+
+          <section className="panel data-panel">
+            <div className="section-heading">
+              <div>
+                <h2>Sales report</h2>
+                <p>{salesReport.from} to {salesReport.to}</p>
+              </div>
+              <strong>{`₱${Number(salesReport.payments_received || 0).toLocaleString()}`}</strong>
+            </div>
+            {salesReport.daily_sales?.length > 0 ? (
+              <div className="table-scroll">
+                <table>
+                  <thead><tr><th>Date</th><th>Payments received</th></tr></thead>
+                  <tbody>
+                    {salesReport.daily_sales.map((day) => (
+                      <tr key={day.payment_date}>
+                        <td>{day.payment_date}</td>
+                        <td>₱{Number(day.total || 0).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p>No payments recorded for this period.</p>
+            )}
+          </section>
 
           <section className="panel">
             <h2>Recent orders</h2>

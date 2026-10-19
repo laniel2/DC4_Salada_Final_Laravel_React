@@ -85,10 +85,7 @@ export default function Dashboard() {
           <section className="panel">
             <h2>Recent orders</h2>
             {orders.length === 0 ? (
-              <p>
-                No orders yet. Add orders using the API or extend this starter
-                with the order form.
-              </p>
+              <p>No tailoring orders have been submitted yet.</p>
             ) : (
               <div className="table-scroll">
                 <table>

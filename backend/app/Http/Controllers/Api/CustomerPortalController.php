@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
@@ -57,7 +58,7 @@ class CustomerPortalController extends Controller
             return $order;
         });
 
-        return response()->json($orders);
+        return OrderResource::collection($orders);
     }
 
     public function services()
@@ -122,10 +123,9 @@ class CustomerPortalController extends Controller
             throw $error;
         }
 
-        return response()->json(
-            $order->load(['customer', 'user', 'items.service', 'payments']),
-            201
-        );
+        return (new OrderResource($order->load(['customer', 'user', 'items.service', 'payments'])))
+            ->response()
+            ->setStatusCode(201);
     }
 
     public function referenceImage(Request $request, Order $order)

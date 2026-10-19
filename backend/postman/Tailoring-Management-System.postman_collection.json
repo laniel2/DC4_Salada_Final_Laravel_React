@@ -862,7 +862,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('returns HTTP 201', function () { pm.response.to.have.status(201); });",
-                  "pm.environment.set('orderId', pm.response.json().id);"
+                  "pm.environment.set('orderId', pm.response.json().data.id);"
                 ]
               }
             }

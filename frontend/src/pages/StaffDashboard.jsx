@@ -16,6 +16,9 @@ export default function StaffDashboard() {
   const [customers, setCustomers] = useState([])
   const [measurements, setMeasurements] = useState([])
   const [search, setSearch] = useState('')
+  const [orderKeyword, setOrderKeyword] = useState('')
+  const [orderStatus, setOrderStatus] = useState('')
+  const [filteringJobs, setFilteringJobs] = useState(false)
   const [selectedCustomer, setSelectedCustomer] = useState(null)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -42,6 +45,23 @@ export default function StaffDashboard() {
       setCustomers(data.data || [])
     } catch {
       setError('Could not search customers.')
+    }
+  }
+
+  async function filterJobs(event) {
+    event.preventDefault()
+    setError('')
+    setFilteringJobs(true)
+
+    try {
+      const { data } = await api.get('/orders', {
+        params: { search: orderKeyword.trim() || undefined, status: orderStatus || undefined },
+      })
+      setOrders(data.data || [])
+    } catch {
+      setError('Could not filter your assigned jobs.')
+    } finally {
+      setFilteringJobs(false)
     }
   }
 
@@ -90,8 +110,23 @@ export default function StaffDashboard() {
 
       <section className="panel data-panel">
         <h2>Assigned jobs</h2>
+        <form className="search-form job-filter-form" onSubmit={filterJobs}>
+          <input
+            value={orderKeyword}
+            onChange={(event) => setOrderKeyword(event.target.value)}
+            placeholder="Search customer, service, garment, or notes"
+            aria-label="Search assigned jobs"
+          />
+          <select aria-label="Filter jobs by status" value={orderStatus} onChange={(event) => setOrderStatus(event.target.value)}>
+            <option value="">All statuses</option>
+            {['Pending', ...progressStatuses, 'Cancelled'].map((status) => (
+              <option key={status} value={status}>{status}</option>
+            ))}
+          </select>
+          <button disabled={filteringJobs}>{filteringJobs ? 'Searching...' : 'Search / filter'}</button>
+        </form>
         {orders.length === 0 ? (
-          <p>No jobs are assigned to you right now.</p>
+          <p>{orderKeyword || orderStatus ? 'No assigned jobs match these filters.' : 'No jobs are assigned to you right now.'}</p>
         ) : (
           <div className="table-scroll">
             <table>

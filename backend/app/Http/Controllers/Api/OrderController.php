@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -8,25 +9,47 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 class OrderController extends Controller {
  public function index(Request $request) {
+  $filters = $request->validate([
+   'search' => 'sometimes|nullable|string|max:255',
+   'status' => 'sometimes|nullable|in:Pending,In Progress,Ready for Fitting,Ready for Pickup,Completed,Cancelled',
+   'due_date' => 'sometimes|nullable|date',
+  ]);
   $orders = Order::with(['customer','user','items.service','payments'])
    ->when($request->user()->role === 'staff', fn ($query) => $query->where('user_id', $request->user()->id))
-   ->when($request->status,fn($q,$s)=>$q->where('status',$s))
-   ->when($request->search,fn($q,$s)=>$q->whereHas('customer',fn($c)=>$c->where('name','like',"%$s%")))
-   ->when($request->due_date,fn($q,$d)=>$q->whereDate('due_date',$d))
+   ->when($filters['status'] ?? null,fn($q,$status)=>$q->where('status',$status))
+   ->when($filters['search'] ?? null,fn($q,$search)=>$q->where(function ($matches) use ($search) {
+    $matches->whereHas('customer', fn ($customer) => $customer
+     ->where('name','like',"%$search%")
+     ->orWhere('phone','like',"%$search%"))
+     ->orWhere('notes','like',"%$search%")
+     ->orWhereHas('items', fn ($items) => $items
+      ->where('garment','like',"%$search%")
+      ->orWhereHas('service', fn ($service) => $service->where('name','like',"%$search%")));
+   }))
+   ->when($filters['due_date'] ?? null,fn($q,$dueDate)=>$q->whereDate('due_date',$dueDate))
    ->latest()->paginate(10);
 
-  return response()->json($orders);
+  return OrderResource::collection($orders);
  }
  public function store(Request $request) {
   $data=$request->validate(['customer_id'=>'required|exists:customers,id','user_id'=>'nullable|exists:users,id','order_date'=>'required|date','due_date'=>'required|date|after_or_equal:order_date','status'=>'nullable|in:Pending,In Progress,Ready for Fitting,Ready for Pickup,Completed,Cancelled','total_amount'=>'required|numeric|min:0','notes'=>'nullable|string']);
   $this->ensureAssignedUserIsStaff($data['user_id'] ?? null);
-  $data['user_id']=$data['user_id'] ?? $request->user()->id;
-  return response()->json(Order::create($data)->load(['customer','user','items','payments']),201);
+  $assignedUserId = $data['user_id'] ?? User::query()
+   ->where('role', 'staff')
+   ->withCount('orders')
+   ->orderBy('orders_count')
+   ->orderBy('id')
+   ->first()?->id;
+  if ($assignedUserId === null) {
+   throw ValidationException::withMessages(['user_id' => ['Create a staff account before adding an order.']]);
+  }
+  $data['user_id'] = $assignedUserId;
+  return (new OrderResource(Order::create($data)->load(['customer','user','items.service','payments'])))->response()->setStatusCode(201);
  }
  public function show(Request $request, Order $order) {
   $this->ensureStaffAssignment($request, $order);
 
-  return response()->json($order->load(['customer','user','items.service','payments']));
+  return new OrderResource($order->load(['customer','user','items.service','payments']));
  }
  public function referenceImage(Request $request, Order $order) {
   $this->ensureStaffAssignment($request, $order);
@@ -38,7 +61,7 @@ class OrderController extends Controller {
   if (array_key_exists('user_id', $data)) {
    $this->ensureAssignedUserIsStaff($data['user_id']);
   }
-  $order->update($data); return response()->json($order->fresh()->load(['customer','user','items','payments']));
+  $order->update($data); return new OrderResource($order->fresh()->load(['customer','user','items.service','payments']));
  }
  public function updateStatus(Request $request, Order $order) {
   $this->ensureStaffAssignment($request, $order);

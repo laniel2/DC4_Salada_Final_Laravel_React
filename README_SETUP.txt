@@ -11,6 +11,7 @@ REQUIREMENTS
 PROJECT STRUCTURE
 - frontend/  React + Vite SPA
 - backend/   Laravel API starter files (Laravel 12)
+- CHECKPOINTS.md  CP2 implementation summary and Postman evidence steps
 
 IMPORTANT
 This is a functional starter project for your mini-capstone. Authentication,

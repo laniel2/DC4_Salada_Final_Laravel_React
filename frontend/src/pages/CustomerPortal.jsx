@@ -82,16 +82,17 @@ export default function CustomerPortal() {
       Object.entries(orderRequest).forEach(([key, value]) => formData.append(key, value))
       if (referenceImage) formData.append('reference_image', referenceImage)
       const { data } = await api.post('/customer/orders', formData)
+      const createdOrder = data.data || data
       setOrders((current) => [{
-        ...data,
+        ...createdOrder,
         payments_total: 0,
-        remaining_balance: Number(data.total_amount || 0),
+        remaining_balance: Number(createdOrder.total_amount || 0),
       }, ...current])
       setOrderRequest({
         service_id: '', garment: '', quantity: 1, due_date: '', notes: '', payment_preference: 'Pay in person',
       })
       setReferenceImage(null)
-      setNotice(`Order request #${data.id} was sent to the shop. Staff will confirm the price and payment details.`)
+      setNotice(`Order request #${createdOrder.id} was sent to the shop. Staff will confirm the price and payment details.`)
     } catch (err) {
       const errors = err.response?.data?.errors
       setError(errors ? Object.values(errors).flat().join(' ') : 'Could not send your order request. Please try again.')

@@ -10,7 +10,7 @@ class DashboardController extends Controller {
    'pending_orders'=>Order::whereIn('status',['Pending','In Progress','Ready for Fitting','Ready for Pickup'])->count(),
    'due_soon'=>Order::whereNotIn('status',['Completed','Cancelled'])->whereBetween('due_date',[now()->toDateString(),now()->addDays(3)->toDateString()])->count(),
    'completed_orders'=>Order::where('status','Completed')->count(),
-   'payments_received'=>(float)Payment::sum('amount')
+   'payments_received'=>(float)Payment::where('status','Confirmed')->sum('amount')
   ]);
  }
 }

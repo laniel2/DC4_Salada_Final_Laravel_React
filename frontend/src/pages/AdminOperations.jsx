@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
 import Message from '../components/Message'
+import PaymentProof from '../components/PaymentProof'
 import { useAuth } from '../context/AuthContext'
 import usePersistentDraft from '../hooks/usePersistentDraft'
 
@@ -72,12 +73,15 @@ const resources = {
       { name: 'amount', label: 'Amount', type: 'number', required: true },
       { name: 'payment_date', label: 'Payment date', type: 'date', required: true },
       { name: 'method', label: 'Method', required: true },
+      { name: 'reference_number', label: 'Reference number' },
+      { name: 'status', label: 'Verification status', type: 'select', options: ['Pending Verification', 'Confirmed', 'Rejected'] },
     ],
-    defaults: { order_id: '', amount: '', payment_date: today, method: 'Cash' },
+    defaults: { order_id: '', amount: '', payment_date: today, method: 'Cash', reference_number: '', status: 'Confirmed' },
   },
 }
 
 function recordTitle(record) {
+  if (record.order_id) return `Order #${record.order_id} · ₱${Number(record.amount || 0).toLocaleString()}`
   return record.name || record.customer?.name || record.garment || `Record #${record.id}`
 }
 const initialOperationsDraft = {
@@ -277,8 +281,9 @@ export default function AdminOperations() {
               <article className="record-row" key={record.id}>
                 <div className="record-summary">
                   <b>{recordTitle(record)}</b>
-                  <small>#{record.id}{record.status ? ` · ${record.status}` : ''}{record.due_date ? ` · Due ${record.due_date}` : ''}</small>
+                  <small>#{record.id}{record.status ? ` · ${record.status}` : ''}{record.reference_number ? ` · Ref ${record.reference_number}` : ''}{record.due_date ? ` · Due ${record.due_date}` : ''}</small>
                 </div>
+                {resourceKey === 'payments' && record.has_proof_image && <PaymentProof paymentId={record.id} />}
                 <div className="row-actions">
                   <button className="small-button" onClick={() => editRecord(record)}>Edit</button>
                   <button className="small-button danger-button" onClick={() => deleteRecord(record)}>Delete</button>

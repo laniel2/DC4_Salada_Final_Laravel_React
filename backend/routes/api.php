@@ -33,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('order-items', OrderItemController::class);
         Route::apiResource('measurements', MeasurementController::class)->except(['index', 'show']);
         Route::apiResource('payments', PaymentController::class);
+        Route::get('/payments/{payment}/proof', [PaymentController::class, 'proof']);
     });
 
     Route::middleware('role:admin|staff')->group(function () {
@@ -59,5 +60,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/payments', [CustomerPortalController::class, 'payments']);
         Route::get('/services', [CustomerPortalController::class, 'services']);
         Route::post('/orders', [CustomerPortalController::class, 'storeOrder']);
+        Route::post('/orders/{order}/payments', [CustomerPortalController::class, 'storeGcashPayment']);
     });
 });

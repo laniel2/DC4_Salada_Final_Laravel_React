@@ -38,7 +38,9 @@ export default function CustomerPayments() {
                   <th>Order</th>
                   <th>Date</th>
                   <th>Method</th>
+                  <th>Reference</th>
                   <th>Payment</th>
+                  <th>Status</th>
                   <th>Remaining balance</th>
                 </tr>
               </thead>
@@ -48,7 +50,9 @@ export default function CustomerPayments() {
                     <td>#{payment.order_id}</td>
                     <td>{payment.payment_date}</td>
                     <td>{payment.method}</td>
+                    <td>{payment.reference_number || '—'}</td>
                     <td>{money(payment.amount)}</td>
+                    <td><span className="status">{payment.status || 'Confirmed'}</span></td>
                     <td>{money(payment.order_remaining_balance)}</td>
                   </tr>
                 ))}

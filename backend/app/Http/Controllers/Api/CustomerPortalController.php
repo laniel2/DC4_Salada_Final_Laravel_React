@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
+use App\Http\Resources\PaymentResource;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
@@ -48,7 +49,7 @@ class CustomerPortalController extends Controller
             ->paginate(10);
 
         $orders->getCollection()->transform(function (Order $order) {
-            $paid = (float) $order->payments->sum('amount');
+            $paid = (float) $order->payments->where('status', 'Confirmed')->sum('amount');
             $order->setAttribute('payments_total', $paid);
             $order->setAttribute(
                 'remaining_balance',
@@ -147,7 +148,7 @@ class CustomerPortalController extends Controller
 
         $payments->getCollection()->transform(function (Payment $payment) {
             $order = $payment->order;
-            $paid = (float) $order->payments->sum('amount');
+            $paid = (float) $order->payments->where('status', 'Confirmed')->sum('amount');
             $payment->setAttribute(
                 'order_remaining_balance',
                 max(0, (float) $order->total_amount - $paid)
@@ -156,7 +157,52 @@ class CustomerPortalController extends Controller
             return $payment;
         });
 
-        return response()->json($payments);
+        return PaymentResource::collection($payments);
+    }
+
+    public function storeGcashPayment(Request $request, Order $order)
+    {
+        $data = $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'reference_number' => 'required|string|max:100',
+            'proof_image' => 'required|image|max:5120',
+        ]);
+
+        $customer = $this->customerUser($request)->customer;
+        abort_unless($order->customer_id === $customer->id, 404);
+        abort_unless($order->payment_preference === 'GCash', 422, 'This order is not set up for GCash payment.');
+
+        if ($order->payments()->where('status', 'Pending Verification')->exists()) {
+            throw ValidationException::withMessages([
+                'payment' => ['A GCash payment for this order is already awaiting verification.'],
+            ]);
+        }
+
+        $confirmedTotal = (float) $order->payments()->where('status', 'Confirmed')->sum('amount');
+        $remaining = max(0, (float) $order->total_amount - $confirmedTotal);
+        if ((float) $data['amount'] > $remaining) {
+            throw ValidationException::withMessages([
+                'amount' => ["The payment cannot be greater than the remaining balance of {$remaining} ."],
+            ]);
+        }
+
+        $proofPath = $request->file('proof_image')->store('payment-proofs', 'local');
+        try {
+            $payment = Payment::create([
+                'order_id' => $order->id,
+                'amount' => $data['amount'],
+                'payment_date' => now()->toDateString(),
+                'method' => 'GCash',
+                'status' => 'Pending Verification',
+                'reference_number' => $data['reference_number'],
+                'proof_image_path' => $proofPath,
+            ]);
+        } catch (\Throwable $error) {
+            Storage::disk('local')->delete($proofPath);
+            throw $error;
+        }
+
+        return (new PaymentResource($payment))->response()->setStatusCode(201);
     }
 
     private function customerUser(Request $request)

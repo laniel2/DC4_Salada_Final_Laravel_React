@@ -25,7 +25,7 @@ class SalesReportController extends Controller
 
         $from = $data['from'] ?? now()->startOfMonth()->toDateString();
         $to = $data['to'] ?? now()->toDateString();
-        $payments = Payment::query()->whereBetween('payment_date', [$from, $to]);
+        $payments = Payment::query()->where('status', 'Confirmed')->whereBetween('payment_date', [$from, $to]);
 
         return response()->json([
             'from' => $from,

@@ -836,6 +836,100 @@ select {
   font-size: 13px;
 }
 
+.customer-gcash-payment {
+  margin-top: 16px;
+  padding-top: 15px;
+  border-top: 1px solid #edf0ed;
+}
+
+.gcash-payment-form h3 {
+  margin: 0 0 14px;
+  color: #304a3e;
+  font-size: 16px;
+}
+
+.gcash-qr-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 14px;
+  border: 1px solid #e7ece8;
+  border-radius: 10px;
+  background: #fafcfa;
+}
+
+.gcash-qr-wrap img {
+  width: 180px;
+  max-width: 40%;
+  height: auto;
+  border: 1px solid #e7ece8;
+  border-radius: 8px;
+  background: white;
+}
+
+.gcash-qr-wrap p,
+.gcash-pending-message {
+  color: #718078;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.gcash-payment-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.gcash-payment-fields label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  color: #304a3e;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gcash-payment-fields input {
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid #dbe4dc;
+  border-radius: 8px;
+  outline-color: #285b49;
+}
+
+.gcash-payment-form .form-actions {
+  margin-top: 12px;
+}
+
+.payment-proof-link {
+  flex: 0 0 auto;
+  color: #285b49;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 700px) {
+  .gcash-qr-wrap {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .gcash-qr-wrap img {
+    width: 160px;
+    max-width: 100%;
+  }
+
+  .gcash-payment-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .gcash-payment-form .form-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
 @media (max-width: 900px) {
   .customer-order-details {
     grid-template-columns: repeat(3, minmax(0, 1fr));

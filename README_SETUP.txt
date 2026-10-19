@@ -67,10 +67,14 @@ SETUP PART 3 — FRONTEND
    cd frontend
 2. Install packages:
    npm install
-3. Start React:
+3. To accept GCash payments, copy the shop's QR image into `frontend/public`
+   and set `VITE_GCASH_QR_URL=/your-qr-file.png` in `frontend/.env`.
+   Create `frontend/.env` from `.env.example` if it does not exist, then restart
+   Vite after changing the setting.
+4. Start React:
    npm run dev
-4. Open the URL shown by Vite (normally http://localhost:5173).
-5. Sign in with one of the sample accounts above, or choose **Create a customer
+5. Open the URL shown by Vite (normally http://localhost:5173).
+6. Sign in with one of the sample accounts above, or choose **Create a customer
    account** to register a customer login.
 
 FRONTEND ROLE WORKSPACES
@@ -80,10 +84,12 @@ FRONTEND ROLE WORKSPACES
 - Staff land on their assigned jobs page, where they can update progress,
   search customers, and view measurements.
 - Customers land on their account page with a welcome message, can edit contact
-  details, request a tailoring order with an optional private reference image,
-  choose a payment preference, and view order progress, due
-  dates, payment history, and balance due. Requests are assigned to the staff
-  member with the lightest order queue for review by the shop.
+  details and request a tailoring order with an optional private reference image.
+  GCash requests continue to an order payment screen where customers scan the
+  configured shop QR, submit a reference number and receipt image, and wait for
+  admin verification. Only confirmed payments reduce the order balance or count
+  toward sales. Requests are assigned to the staff member with the lightest
+  order queue for review by the shop.
 
 API / POSTMAN
 - Import `backend/postman/Tailoring-Management-System.postman_collection.json`
@@ -105,8 +111,10 @@ API / POSTMAN
   `PATCH /api/orders/{order}/status`.
 - Customer: view/update their own `/api/customer/profile`, `/api/customer/orders`,
   `/api/customer/payments`, and `/api/customer/services`; submit a service request
-  with `POST /api/customer/orders` (optional `reference_image`, max 5 MB). Order
-  reference images are served only to the customer who owns the order or the
+  with `POST /api/customer/orders` (optional `reference_image`, max 5 MB), then
+  submit GCash proof to `POST /api/customer/orders/{order}/payments` (receipt image
+  max 5 MB). Admins verify payments by changing their status in Shop records.
+  Order reference images are served only to the customer who owns the order or the
   assigned shop team. Order and payment responses include the
   remaining balance. The payment preference is saved with the request; payment
   itself is confirmed and recorded by shop staff.

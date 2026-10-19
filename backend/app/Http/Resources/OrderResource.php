@@ -35,6 +35,8 @@ class OrderResource extends JsonResource
                 'amount' => $payment->amount,
                 'payment_date' => $payment->payment_date,
                 'method' => $payment->method,
+                'status' => $payment->status,
+                'reference_number' => $payment->reference_number,
             ])),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

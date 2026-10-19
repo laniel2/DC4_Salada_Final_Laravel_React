@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import Message from '../components/Message'
 import { useAuth } from '../context/AuthContext'
@@ -11,6 +12,7 @@ const emptyOrderRequest = {
 }
 
 export default function CustomerPortal() {
+  const navigate = useNavigate()
   const { user } = useAuth()
   const draftPrefix = `tailoring-customer-draft-${user?.id || 'account'}`
   const [profile, setProfile, clearProfileDraft, hasProfileDraft, replaceProfile] = usePersistentDraft(`${draftPrefix}-profile`, emptyProfile)
@@ -85,7 +87,11 @@ export default function CustomerPortal() {
       const createdOrder = data.data || data
       clearOrderDraft(emptyOrderRequest)
       setReferenceImage(null)
-      setNotice(`Order request #${createdOrder.id} was sent to the shop. Staff will confirm the price and payment details.`)
+      if (createdOrder.payment_preference === 'GCash') {
+        navigate(`/orders?payFor=${createdOrder.id}`)
+      } else {
+        setNotice(`Order request #${createdOrder.id} was sent to the shop. Staff will confirm the price and payment details.`)
+      }
     } catch (err) {
       const errors = err.response?.data?.errors
       setError(errors ? Object.values(errors).flat().join(' ') : 'Could not send your order request. Please try again.')

@@ -1,15 +1,12 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
 import Message from '../components/Message'
-import ReferenceImage from '../components/ReferenceImage'
 
 const money = (amount) => `₱${Number(amount || 0).toLocaleString()}`
 
 export default function CustomerPortal() {
   const [profile, setProfile] = useState({ name: '', email: '', phone: '', address: '' })
   const [savedProfile, setSavedProfile] = useState({ name: '', email: '', phone: '', address: '' })
-  const [orders, setOrders] = useState([])
-  const [payments, setPayments] = useState([])
   const [services, setServices] = useState([])
   const [orderRequest, setOrderRequest] = useState({
     service_id: '', garment: '', quantity: 1, due_date: '', notes: '', payment_preference: 'Pay in person',
@@ -38,11 +35,9 @@ export default function CustomerPortal() {
   useEffect(() => {
     Promise.all([
       api.get('/customer/profile'),
-      api.get('/customer/orders'),
-      api.get('/customer/payments'),
       api.get('/customer/services'),
     ])
-      .then(([profileResponse, ordersResponse, paymentsResponse, servicesResponse]) => {
+      .then(([profileResponse, servicesResponse]) => {
         const customer = profileResponse.data.customer || {}
         const loadedProfile = {
           name: profileResponse.data.name || customer.name || '',
@@ -52,8 +47,6 @@ export default function CustomerPortal() {
         }
         setProfile(loadedProfile)
         setSavedProfile(loadedProfile)
-        setOrders(ordersResponse.data.data || [])
-        setPayments(paymentsResponse.data.data || [])
         setServices(servicesResponse.data || [])
       })
       .catch(() => setError('Could not load your account. Please try again.'))
@@ -84,11 +77,6 @@ export default function CustomerPortal() {
       if (referenceImage) formData.append('reference_image', referenceImage)
       const { data } = await api.post('/customer/orders', formData)
       const createdOrder = data.data || data
-      setOrders((current) => [{
-        ...createdOrder,
-        payments_total: 0,
-        remaining_balance: Number(createdOrder.total_amount || 0),
-      }, ...current])
       setOrderRequest({
         service_id: '', garment: '', quantity: 1, due_date: '', notes: '', payment_preference: 'Pay in person',
       })
@@ -263,76 +251,6 @@ export default function CustomerPortal() {
         )}
       </section>}
 
-      <section className="panel data-panel customer-orders-panel">
-        <div className="customer-list-heading">
-          <div>
-            <h2>Your orders</h2>
-            <p>Follow each request from review through completion.</p>
-          </div>
-          <span>{orders.length} {orders.length === 1 ? 'order' : 'orders'}</span>
-        </div>
-        {orders.length === 0 ? (
-          <div className="customer-empty-state">
-            <strong>No orders yet</strong>
-            <p>When you send a request, its status and payment details will appear here.</p>
-            <button type="button" className="outline" onClick={() => setShowOrderForm(true)}>Request your first order</button>
-          </div>
-        ) : (
-          <div className="customer-order-list">
-            {orders.map((order) => (
-              <article className="customer-order-card" key={order.id}>
-                <div className="customer-order-top">
-                  <div>
-                    <span className="customer-order-number">Order #{order.id}</span>
-                    <h3>{order.items?.map((item) => `${item.service?.name ? `${item.service.name}: ` : ''}${item.garment} × ${item.quantity}`).join(', ') || 'Tailoring order'}</h3>
-                  </div>
-                  <span className="status">{order.status}</span>
-                </div>
-                <div className="customer-order-details">
-                  <div><small>Due date</small><strong>{order.due_date || 'To be confirmed'}</strong></div>
-                  <div><small>Order total</small><strong>{money(order.total_amount)}</strong></div>
-                  <div><small>Paid</small><strong>{money(order.payments_total)}</strong></div>
-                  <div><small>Balance</small><strong>{money(order.remaining_balance)}</strong></div>
-                  <div><small>Payment preference</small><strong>{order.payment_preference || '—'}</strong></div>
-                </div>
-                {order.has_reference_image && <div className="customer-order-reference"><ReferenceImage orderId={order.id} hasImage={order.has_reference_image} customer /></div>}
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="panel data-panel">
-        <h2>Payment history</h2>
-        {payments.length === 0 ? (
-          <p>No payments have been recorded for your orders yet.</p>
-        ) : (
-          <div className="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Order</th>
-                  <th>Date</th>
-                  <th>Method</th>
-                  <th>Payment</th>
-                  <th>Remaining balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payments.map((payment) => (
-                  <tr key={payment.id}>
-                    <td>#{payment.order_id}</td>
-                    <td>{payment.payment_date}</td>
-                    <td>{payment.method}</td>
-                    <td>{money(payment.amount)}</td>
-                    <td>{money(payment.order_remaining_balance)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
     </>
   )
 }

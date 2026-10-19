@@ -6,6 +6,8 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import StaffDashboard from './pages/StaffDashboard'
 import CustomerPortal from './pages/CustomerPortal'
+import CustomerOrders from './pages/CustomerOrders'
+import CustomerPayments from './pages/CustomerPayments'
 import AdminAccounts from './pages/AdminAccounts'
 import AdminOperations from './pages/AdminOperations'
 
@@ -24,13 +26,19 @@ function Layout() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="logo">
-          <span>TM</span>
-          <b>TailorDesk</b>
+          <span>A'S</span>
+          <b>A'S TAILORING</b>
         </div>
         <p className="nav-label">WORKSPACE</p>
         <Link className={location.pathname === '/' ? 'active' : ''} to="/">
-          ▦　{user?.role === 'customer' ? 'My orders' : user?.role === 'staff' ? 'My jobs' : 'Dashboard'}
+          ▦　{user?.role === 'customer' ? 'Overview' : user?.role === 'staff' ? 'My jobs' : 'Dashboard'}
         </Link>
+        {user?.role === 'customer' && (
+          <>
+            <Link className={location.pathname === '/orders' ? 'active' : ''} to="/orders">◷　Your orders</Link>
+            <Link className={location.pathname === '/payments' ? 'active' : ''} to="/payments">＄　Payment history</Link>
+          </>
+        )}
         {user?.role === 'admin' && (
           <>
             <Link className={location.pathname === '/manage' ? 'active' : ''} to="/manage">
@@ -59,7 +67,7 @@ function Layout() {
 
       <main className="main-area">
         <header className="topbar">
-          <span>Tailoring Shop / Workspace</span>
+          <span></span>
           <button className="outline" onClick={logout}>
             Log out
           </button>
@@ -67,6 +75,8 @@ function Layout() {
         <div className="content">
           <Routes>
             <Route path="/" element={<RoleHome role={user?.role} />} />
+            <Route path="/orders" element={user?.role === 'customer' ? <CustomerOrders /> : <Navigate to="/" replace />} />
+            <Route path="/payments" element={user?.role === 'customer' ? <CustomerPayments /> : <Navigate to="/" replace />} />
             <Route
               path="/manage"
               element={user?.role === 'admin' ? <AdminOperations /> : <Navigate to="/" replace />}

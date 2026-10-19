@@ -5,28 +5,34 @@ import Message from '../components/Message'
 import ReferenceImage from '../components/ReferenceImage'
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({})
+  const [stats, setStats] = useState({
+    total_orders: 0,
+    pending_orders: 0,
+    due_soon: 0,
+    completed_orders: 0,
+    payments_received: 0,
+  })
   const [orders, setOrders] = useState([])
-  const [salesReport, setSalesReport] = useState({ daily_sales: [] })
+  const [salesReport, setSalesReport] = useState({ payments_received: 0, daily_sales: [] })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([
-      api.get('/dashboard'),
-      api.get('/orders'),
-      api.get('/admin/reports/sales'),
-    ])
-      .then(([statsResponse, ordersResponse, salesResponse]) => {
-        setStats(statsResponse.data)
-        setOrders(ordersResponse.data.data || ordersResponse.data)
-        setSalesReport(salesResponse.data)
+    const requests = [
+      api.get('/dashboard').then(({ data }) => setStats(data)),
+      api.get('/orders').then(({ data }) => {
+        const list = Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : []
+        setOrders(list)
+      }),
+      api.get('/admin/reports/sales').then(({ data }) => setSalesReport(data)),
+    ]
+
+    Promise.allSettled(requests)
+      .then((results) => {
+        if (results.some((result) => result.status === 'rejected')) {
+          setError('Some dashboard information could not be loaded. Refresh to try again.')
+        }
       })
-      .catch(() =>
-        setError(
-          'Could not load dashboard. Check that Laravel is running and migrations are complete.',
-        ),
-      )
       .finally(() => setLoading(false))
   }, [])
 

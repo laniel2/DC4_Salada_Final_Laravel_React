@@ -18,6 +18,8 @@ export default function Register() {
   const [details, setDetails] = useState(initialDetails)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false)
 
   function updateField(event) {
     setDetails((current) => ({ ...current, [event.target.name]: event.target.value }))
@@ -75,25 +77,47 @@ export default function Register() {
         </label>
         <label>
           Password
-          <input
-            name="password"
-            type="password"
-            minLength={8}
-            value={details.password}
-            onChange={updateField}
-            required
-          />
+          <div className="password-field">
+            <input
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              minLength={8}
+              value={details.password}
+              onChange={updateField}
+              required
+            />
+            <button
+              className="password-toggle"
+              type="button"
+              onClick={() => setShowPassword((visible) => !visible)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-pressed={showPassword}
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
         </label>
         <label>
           Confirm password
-          <input
-            name="password_confirmation"
-            type="password"
-            minLength={8}
-            value={details.password_confirmation}
-            onChange={updateField}
-            required
-          />
+          <div className="password-field">
+            <input
+              name="password_confirmation"
+              type={showPasswordConfirmation ? 'text' : 'password'}
+              minLength={8}
+              value={details.password_confirmation}
+              onChange={updateField}
+              required
+            />
+            <button
+              className="password-toggle"
+              type="button"
+              onClick={() => setShowPasswordConfirmation((visible) => !visible)}
+              aria-label={showPasswordConfirmation ? 'Hide password' : 'Show password'}
+              aria-pressed={showPasswordConfirmation}
+            >
+              {showPasswordConfirmation ? 'Hide' : 'Show'}
+            </button>
+          </div>
         </label>
         <button disabled={busy}>{busy ? 'Creating account...' : 'Create account'}</button>
         <p className="auth-switch">

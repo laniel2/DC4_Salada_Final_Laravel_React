@@ -286,6 +286,29 @@ td,th {
   outline-color:#285b49
 }
 
+.password-field {
+  position:relative;
+  margin-top:7px
+}
+
+.login .password-field input {
+  margin-top:0;
+  padding-right:68px
+}
+
+.login .password-toggle {
+  position:absolute;
+  top:50%;
+  right:7px;
+  transform:translateY(-50%);
+  width:auto;
+  margin:0;
+  padding:5px 8px;
+  background:transparent;
+  color:#285b49;
+  font-size:12px
+}
+
 .login button {
   width:100%;
   margin:6px 0 14px

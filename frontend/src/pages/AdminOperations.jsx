@@ -86,6 +86,8 @@ export default function AdminOperations() {
   const [editingId, setEditingId] = useState(null)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
@@ -93,6 +95,8 @@ export default function AdminOperations() {
   const resource = resources[resourceKey]
 
   async function loadRecords(nextPage = 1, append = false) {
+    if (append) setLoadingMore(true)
+    else setLoading(true)
     try {
       const { data } = await api.get(`/${resourceKey}`, { params: { page: nextPage } })
       setRecords((current) => append ? [...current, ...data.data] : data.data || [])
@@ -101,6 +105,9 @@ export default function AdminOperations() {
       setError('')
     } catch {
       setError(`Could not load ${resource.label.toLowerCase()}.`)
+    } finally {
+      setLoading(false)
+      setLoadingMore(false)
     }
   }
 
@@ -108,6 +115,10 @@ export default function AdminOperations() {
     setForm(resources[resourceKey].defaults)
     setEditingId(null)
     setNotice('')
+    setError('')
+    setRecords([])
+    setPage(1)
+    setHasMore(false)
     loadRecords()
   }, [resourceKey])
 
@@ -250,7 +261,9 @@ export default function AdminOperations() {
 
       <section className="panel data-panel">
         <h2>{resource.label}</h2>
-        {records.length === 0 ? (
+        {loading ? (
+          <p>Loading {resource.label.toLowerCase()}...</p>
+        ) : records.length === 0 ? (
           <p>No {resource.label.toLowerCase()} found.</p>
         ) : (
           <div className="record-list">
@@ -269,8 +282,8 @@ export default function AdminOperations() {
           </div>
         )}
         {hasMore && (
-          <button className="outline load-more" onClick={() => loadRecords(page + 1, true)}>
-            Load more
+          <button className="outline load-more" disabled={loadingMore} onClick={() => loadRecords(page + 1, true)}>
+            {loadingMore ? 'Loading...' : 'Load more'}
           </button>
         )}
       </section>

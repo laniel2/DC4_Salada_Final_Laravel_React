@@ -19,13 +19,25 @@ export default function AdminAccounts() {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
 
-  async function loadAccounts() {
+  async function loadAccounts(nextPage = 1, append = false) {
+    if (append) setLoadingMore(true)
+    else setLoading(true)
     try {
-      const { data } = await api.get('/admin/accounts')
-      setAccounts(data.data || [])
+      const { data } = await api.get('/admin/accounts', { params: { page: nextPage } })
+      setAccounts((current) => append ? [...current, ...(data.data || [])] : data.data || [])
+      setPage(data.current_page || nextPage)
+      setHasMore(Boolean(data.next_page_url))
+      setError('')
     } catch {
       setError('Could not load staff and customer accounts.')
+    } finally {
+      setLoading(false)
+      setLoadingMore(false)
     }
   }
 
@@ -210,7 +222,9 @@ export default function AdminAccounts() {
 
       <section className="panel data-panel">
         <h2>Accounts</h2>
-        {accounts.length === 0 ? (
+        {loading ? (
+          <p>Loading accounts...</p>
+        ) : accounts.length === 0 ? (
           <p>No staff or customer accounts yet.</p>
         ) : (
           <div className="table-scroll">
@@ -234,6 +248,11 @@ export default function AdminAccounts() {
               </tbody>
             </table>
           </div>
+        )}
+        {hasMore && (
+          <button className="outline load-more" disabled={loadingMore} onClick={() => loadAccounts(page + 1, true)}>
+            {loadingMore ? 'Loading...' : 'Load more accounts'}
+          </button>
         )}
       </section>
     </>

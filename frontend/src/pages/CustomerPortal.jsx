@@ -20,6 +20,7 @@ export default function CustomerPortal() {
   const [saving, setSaving] = useState(false)
   const [submittingOrder, setSubmittingOrder] = useState(false)
   const [editingProfile, setEditingProfile] = useState(false)
+  const [showOrderForm, setShowOrderForm] = useState(false)
   const [referenceImage, setReferenceImage] = useState(null)
   const [imagePreview, setImagePreview] = useState('')
   const [draggingImage, setDraggingImage] = useState(false)
@@ -132,19 +133,25 @@ export default function CustomerPortal() {
 
   return (
     <>
-      <div className="page-heading">
+      <div className="page-heading customer-page-heading">
         <div>
           <h1>Welcome, {profile.name || 'Customer'}</h1>
-          <p>Track progress, due dates, payments, and your contact details.</p>
+          <p>Keep your tailoring requests and updates in one place.</p>
         </div>
+        <button type="button" onClick={() => setShowOrderForm((current) => !current)} aria-expanded={showOrderForm} aria-controls="customer-order-form">
+          {showOrderForm ? 'Close request form' : '＋ Request an order'}
+        </button>
       </div>
 
       <Message error>{error}</Message>
       {notice && <div className="message">{notice}</div>}
 
-      <section className="panel account-panel">
+      <section className="panel account-panel customer-contact-panel">
         <div className="section-heading">
-          <h2>Contact details</h2>
+          <div>
+            <h2>Contact details</h2>
+            <p>{profile.email}{profile.phone ? ` · ${profile.phone}` : ''}</p>
+          </div>
           <button
             type="button"
             className="outline"
@@ -183,7 +190,7 @@ export default function CustomerPortal() {
         </form>}
       </section>
 
-      <section className="panel account-panel">
+      {showOrderForm && <section className="panel account-panel customer-request-panel" id="customer-order-form">
         <h2>Request a new order</h2>
         <p>Choose a service and tell the shop what you need. Staff will review your request and confirm the final price and timing.</p>
         {services.length === 0 ? (
@@ -254,46 +261,43 @@ export default function CustomerPortal() {
             <button disabled={submittingOrder}>{submittingOrder ? 'Sending request...' : 'Send order request'}</button>
           </form>
         )}
-      </section>
+      </section>}
 
-      <section className="panel data-panel">
-        <h2>Your orders</h2>
+      <section className="panel data-panel customer-orders-panel">
+        <div className="customer-list-heading">
+          <div>
+            <h2>Your orders</h2>
+            <p>Follow each request from review through completion.</p>
+          </div>
+          <span>{orders.length} {orders.length === 1 ? 'order' : 'orders'}</span>
+        </div>
         {orders.length === 0 ? (
-          <p>No tailoring orders are linked to your account yet.</p>
+          <div className="customer-empty-state">
+            <strong>No orders yet</strong>
+            <p>When you send a request, its status and payment details will appear here.</p>
+            <button type="button" className="outline" onClick={() => setShowOrderForm(true)}>Request your first order</button>
+          </div>
         ) : (
-          <div className="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Order</th>
-                  <th>Items</th>
-                  <th>Due date</th>
-                  <th>Status</th>
-                  <th>Total</th>
-                  <th>Paid</th>
-                  <th>Balance</th>
-                  <th>Payment preference</th>
-                  <th>Reference</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((order) => (
-                  <tr key={order.id}>
-                    <td>#{order.id}</td>
-                    <td>
-                      {order.items?.map((item) => item.garment).join(', ') || 'Tailoring order'}
-                    </td>
-                    <td>{order.due_date}</td>
-                    <td><span className="status">{order.status}</span></td>
-                    <td>{money(order.total_amount)}</td>
-                    <td>{money(order.payments_total)}</td>
-                    <td>{money(order.remaining_balance)}</td>
-                    <td>{order.payment_preference || '—'}</td>
-                    <td><ReferenceImage orderId={order.id} hasImage={order.has_reference_image} customer /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="customer-order-list">
+            {orders.map((order) => (
+              <article className="customer-order-card" key={order.id}>
+                <div className="customer-order-top">
+                  <div>
+                    <span className="customer-order-number">Order #{order.id}</span>
+                    <h3>{order.items?.map((item) => `${item.service?.name ? `${item.service.name}: ` : ''}${item.garment} × ${item.quantity}`).join(', ') || 'Tailoring order'}</h3>
+                  </div>
+                  <span className="status">{order.status}</span>
+                </div>
+                <div className="customer-order-details">
+                  <div><small>Due date</small><strong>{order.due_date || 'To be confirmed'}</strong></div>
+                  <div><small>Order total</small><strong>{money(order.total_amount)}</strong></div>
+                  <div><small>Paid</small><strong>{money(order.payments_total)}</strong></div>
+                  <div><small>Balance</small><strong>{money(order.remaining_balance)}</strong></div>
+                  <div><small>Payment preference</small><strong>{order.payment_preference || '—'}</strong></div>
+                </div>
+                {order.has_reference_image && <div className="customer-order-reference"><ReferenceImage orderId={order.id} hasImage={order.has_reference_image} customer /></div>}
+              </article>
+            ))}
           </div>
         )}
       </section>

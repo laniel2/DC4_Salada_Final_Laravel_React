@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
 import Message from '../components/Message'
+import { useAuth } from '../context/AuthContext'
+import usePersistentDraft from '../hooks/usePersistentDraft'
 
 const emptyForm = {
   name: '',
@@ -11,11 +13,17 @@ const emptyForm = {
   password: '',
   password_confirmation: '',
 }
+const emptyAccountDraft = { form: emptyForm, editingId: null }
+const safeAccountDraft = (draft) => ({
+  ...draft,
+  form: { ...draft.form, password: '', password_confirmation: '' },
+})
 
 export default function AdminAccounts() {
+  const { user } = useAuth()
+  const [draft, setDraft, clearDraft] = usePersistentDraft(`tailoring-admin-account-draft-${user?.id || 'account'}`, emptyAccountDraft, safeAccountDraft)
   const [accounts, setAccounts] = useState([])
-  const [form, setForm] = useState(emptyForm)
-  const [editingId, setEditingId] = useState(null)
+  const { form, editingId } = draft
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
@@ -46,26 +54,27 @@ export default function AdminAccounts() {
   }, [])
 
   function updateField(event) {
-    setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
+    setDraft((current) => ({ ...current, form: { ...current.form, [event.target.name]: event.target.value } }))
   }
 
   function startEdit(account) {
-    setEditingId(account.id)
-    setForm({
-      ...emptyForm,
-      name: account.name,
-      email: account.email,
-      role: account.role,
-      phone: account.customer?.phone || '',
-      address: account.customer?.address || '',
+    setDraft({
+      editingId: account.id,
+      form: {
+        ...emptyForm,
+        name: account.name,
+        email: account.email,
+        role: account.role,
+        phone: account.customer?.phone || '',
+        address: account.customer?.address || '',
+      },
     })
     setError('')
     setNotice('')
   }
 
   function resetForm() {
-    setEditingId(null)
-    setForm(emptyForm)
+    clearDraft(emptyAccountDraft)
   }
 
   async function saveAccount(event) {

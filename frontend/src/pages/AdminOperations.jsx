@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
 import Message from '../components/Message'
+import { useAuth } from '../context/AuthContext'
+import usePersistentDraft from '../hooks/usePersistentDraft'
 
 const today = new Date().toISOString().slice(0, 10)
 
@@ -78,12 +80,17 @@ const resources = {
 function recordTitle(record) {
   return record.name || record.customer?.name || record.garment || `Record #${record.id}`
 }
+const initialOperationsDraft = {
+  resourceKey: 'customers',
+  form: resources.customers.defaults,
+  editingId: null,
+}
 
 export default function AdminOperations() {
-  const [resourceKey, setResourceKey] = useState('customers')
+  const { user } = useAuth()
+  const [draft, setDraft, clearDraft] = usePersistentDraft(`tailoring-admin-operations-draft-${user?.id || 'account'}`, initialOperationsDraft)
+  const { resourceKey, form, editingId } = draft
   const [records, setRecords] = useState([])
-  const [form, setForm] = useState(resources.customers.defaults)
-  const [editingId, setEditingId] = useState(null)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -112,8 +119,6 @@ export default function AdminOperations() {
   }
 
   useEffect(() => {
-    setForm(resources[resourceKey].defaults)
-    setEditingId(null)
     setNotice('')
     setError('')
     setRecords([])
@@ -123,12 +128,11 @@ export default function AdminOperations() {
   }, [resourceKey])
 
   function resetForm() {
-    setForm(resource.defaults)
-    setEditingId(null)
+    clearDraft({ resourceKey, form: resource.defaults, editingId: null })
   }
 
   function updateField(event) {
-    setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
+    setDraft((current) => ({ ...current, form: { ...current.form, [event.target.name]: event.target.value } }))
   }
 
   function editRecord(record) {
@@ -139,8 +143,7 @@ export default function AdminOperations() {
         nextForm[field.name] = field.type === 'json' ? JSON.stringify(value, null, 2) : value
       }
     }
-    setForm(nextForm)
-    setEditingId(record.id)
+    setDraft((current) => ({ ...current, form: nextForm, editingId: record.id }))
     setError('')
     setNotice('')
   }
@@ -209,7 +212,10 @@ export default function AdminOperations() {
 
       <label className="resource-picker">
         Manage
-        <select value={resourceKey} onChange={(event) => setResourceKey(event.target.value)}>
+        <select value={resourceKey} onChange={(event) => {
+          const nextResourceKey = event.target.value
+          setDraft({ resourceKey: nextResourceKey, form: resources[nextResourceKey].defaults, editingId: null })
+        }}>
           {Object.entries(resources).map(([key, value]) => (
             <option key={key} value={key}>{value.label}</option>
           ))}

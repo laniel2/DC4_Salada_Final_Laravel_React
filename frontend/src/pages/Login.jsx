@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Message from '../components/Message'
+import usePersistentDraft from '../hooks/usePersistentDraft'
 
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
-  const [email, setEmail] = useState('admin@example.com')
+  const [loginDraft, setLoginDraft] = usePersistentDraft('tailoring-login-draft', { email: 'admin@example.com' })
+  const email = loginDraft.email
   const [password, setPassword] = useState('password')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -43,7 +45,7 @@ export default function Login() {
           <input
             type="email"
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => setLoginDraft((current) => ({ ...current, email: event.target.value }))}
             required
           />
         </label>

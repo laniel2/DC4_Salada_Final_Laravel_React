@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Message from '../components/Message'
+import usePersistentDraft from '../hooks/usePersistentDraft'
 
 const initialDetails = {
   name: '',
@@ -11,11 +12,16 @@ const initialDetails = {
   password: '',
   password_confirmation: '',
 }
+const publicRegistrationDetails = (details) => ({
+  ...details,
+  password: '',
+  password_confirmation: '',
+})
 
 export default function Register() {
   const { register } = useAuth()
   const navigate = useNavigate()
-  const [details, setDetails] = useState(initialDetails)
+  const [details, setDetails, clearDraft] = usePersistentDraft('tailoring-registration-draft', initialDetails, publicRegistrationDetails)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -32,6 +38,7 @@ export default function Register() {
 
     try {
       await register(details)
+      clearDraft(initialDetails)
       navigate('/')
     } catch (err) {
       const validationErrors = err.response?.data?.errors

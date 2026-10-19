@@ -1,23 +1,29 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
 import Message from '../components/Message'
+import { useAuth } from '../context/AuthContext'
+import usePersistentDraft from '../hooks/usePersistentDraft'
 
 const money = (amount) => `₱${Number(amount || 0).toLocaleString()}`
+const emptyProfile = { name: '', email: '', phone: '', address: '' }
+const emptyOrderRequest = {
+  service_id: '', garment: '', quantity: 1, due_date: '', notes: '', payment_preference: 'Pay in person',
+}
 
 export default function CustomerPortal() {
-  const [profile, setProfile] = useState({ name: '', email: '', phone: '', address: '' })
+  const { user } = useAuth()
+  const draftPrefix = `tailoring-customer-draft-${user?.id || 'account'}`
+  const [profile, setProfile, clearProfileDraft, hasProfileDraft, replaceProfile] = usePersistentDraft(`${draftPrefix}-profile`, emptyProfile)
+  const [orderRequest, setOrderRequest, clearOrderDraft, hasOrderDraft] = usePersistentDraft(`${draftPrefix}-order`, emptyOrderRequest)
   const [savedProfile, setSavedProfile] = useState({ name: '', email: '', phone: '', address: '' })
   const [services, setServices] = useState([])
-  const [orderRequest, setOrderRequest] = useState({
-    service_id: '', garment: '', quantity: 1, due_date: '', notes: '', payment_preference: 'Pay in person',
-  })
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [submittingOrder, setSubmittingOrder] = useState(false)
-  const [editingProfile, setEditingProfile] = useState(false)
-  const [showOrderForm, setShowOrderForm] = useState(false)
+  const [editingProfile, setEditingProfile] = useState(hasProfileDraft)
+  const [showOrderForm, setShowOrderForm] = useState(hasOrderDraft)
   const [referenceImage, setReferenceImage] = useState(null)
   const [imagePreview, setImagePreview] = useState('')
   const [draggingImage, setDraggingImage] = useState(false)
@@ -45,7 +51,7 @@ export default function CustomerPortal() {
           phone: customer.phone || '',
           address: customer.address || '',
         }
-        setProfile(loadedProfile)
+        if (!hasProfileDraft) replaceProfile(loadedProfile)
         setSavedProfile(loadedProfile)
         setServices(servicesResponse.data || [])
       })
@@ -77,9 +83,7 @@ export default function CustomerPortal() {
       if (referenceImage) formData.append('reference_image', referenceImage)
       const { data } = await api.post('/customer/orders', formData)
       const createdOrder = data.data || data
-      setOrderRequest({
-        service_id: '', garment: '', quantity: 1, due_date: '', notes: '', payment_preference: 'Pay in person',
-      })
+      clearOrderDraft(emptyOrderRequest)
       setReferenceImage(null)
       setNotice(`Order request #${createdOrder.id} was sent to the shop. Staff will confirm the price and payment details.`)
     } catch (err) {
@@ -105,7 +109,7 @@ export default function CustomerPortal() {
         phone: customer.phone || '',
         address: customer.address || '',
       }
-      setProfile(updatedProfile)
+      clearProfileDraft(updatedProfile)
       setSavedProfile(updatedProfile)
       setNotice('Your contact details have been updated.')
       setEditingProfile(false)
@@ -144,8 +148,12 @@ export default function CustomerPortal() {
             type="button"
             className="outline"
             onClick={() => {
-              if (editingProfile) setProfile(savedProfile)
-              setEditingProfile((current) => !current)
+              if (editingProfile) {
+                clearProfileDraft(savedProfile)
+                setEditingProfile(false)
+              } else {
+                setEditingProfile(true)
+              }
             }}
           >
             {editingProfile ? 'Cancel editing' : 'Edit contact details'}

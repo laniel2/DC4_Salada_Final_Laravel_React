@@ -4,6 +4,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 class OrderController extends Controller {
  public function index(Request $request) {
@@ -26,6 +27,11 @@ class OrderController extends Controller {
   $this->ensureStaffAssignment($request, $order);
 
   return response()->json($order->load(['customer','user','items.service','payments']));
+ }
+ public function referenceImage(Request $request, Order $order) {
+  $this->ensureStaffAssignment($request, $order);
+  abort_unless($order->reference_image_path && Storage::disk('local')->exists($order->reference_image_path), 404);
+  return Storage::disk('local')->response($order->reference_image_path);
  }
  public function update(Request $request, Order $order) {
   $data=$request->validate(['customer_id'=>'sometimes|required|exists:customers,id','user_id'=>'sometimes|required|exists:users,id','order_date'=>'sometimes|required|date','due_date'=>'sometimes|required|date','status'=>'sometimes|required|in:Pending,In Progress,Ready for Fitting,Ready for Pickup,Completed,Cancelled','total_amount'=>'sometimes|required|numeric|min:0','notes'=>'nullable|string']);

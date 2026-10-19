@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/orders', [OrderController::class, 'index']);
         Route::get('/orders/{order}', [OrderController::class, 'show']);
+        Route::get('/orders/{order}/reference-image', [OrderController::class, 'referenceImage']);
         Route::patch('/orders/{order}/status', [OrderController::class, 'updateStatus']);
 
         Route::get('/measurements', [MeasurementController::class, 'index']);
@@ -54,6 +55,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/profile', [CustomerPortalController::class, 'profile']);
         Route::patch('/profile', [CustomerPortalController::class, 'updateProfile']);
         Route::get('/orders', [CustomerPortalController::class, 'orders']);
+        Route::get('/orders/{order}/reference-image', [CustomerPortalController::class, 'referenceImage']);
         Route::get('/payments', [CustomerPortalController::class, 'payments']);
+        Route::get('/services', [CustomerPortalController::class, 'services']);
+        Route::post('/orders', [CustomerPortalController::class, 'storeOrder']);
     });
 });

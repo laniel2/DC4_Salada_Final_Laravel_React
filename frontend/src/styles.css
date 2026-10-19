@@ -398,6 +398,68 @@ select {
   margin: 15px 0 0;
 }
 
+.image-upload-field {
+  display:grid;
+  gap:8px;
+  color:#304a3e;
+  font-size:13px;
+  font-weight:600
+}
+
+.image-upload-field small {
+  color:#78877d;
+  font-weight:400
+}
+
+.image-drop-zone {
+  display:grid;
+  min-height:88px;
+  place-items:center;
+  padding:16px;
+  border:1px dashed #8da99a;
+  border-radius:9px;
+  background:#f7faf7;
+  color:#557262;
+  text-align:center;
+  cursor:pointer
+}
+
+.image-drop-zone.is-dragging {
+  border-color:#285b49;
+  background:#e7f5eb
+}
+
+.image-drop-zone input {
+  position:absolute;
+  width:1px;
+  height:1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0)
+}
+
+.reference-preview,
+.reference-order-image {
+  display:block;
+  max-width:100%;
+  max-height:220px;
+  object-fit:contain;
+  border:1px solid #dbe4dc;
+  border-radius:8px
+}
+
+.reference-image-cell {
+  display:grid;
+  justify-items:start;
+  gap:7px
+}
+
+.order-notes {
+  display:block;
+  margin-top:5px;
+  color:#78877d;
+  white-space:normal
+}
+
 .record-list {
   display: grid;
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import api from '../services/api'
 import StatCard from '../components/StatCard'
 import Message from '../components/Message'
+import ReferenceImage from '../components/ReferenceImage'
 
 export default function Dashboard() {
   const [stats, setStats] = useState({})
@@ -95,7 +96,10 @@ export default function Dashboard() {
                     <tr>
                       <th>Order #</th>
                       <th>Customer</th>
+                      <th>Request</th>
                       <th>Due date</th>
+                      <th>Payment preference</th>
+                      <th>Reference</th>
                       <th>Status</th>
                       <th>Total</th>
                     </tr>
@@ -105,7 +109,10 @@ export default function Dashboard() {
                       <tr key={order.id}>
                         <td>#{order.id}</td>
                         <td>{order.customer?.name || 'Customer'}</td>
+                        <td>{order.items?.map((item) => `${item.service?.name || 'Tailoring'}: ${item.garment}`).join(', ') || 'Tailoring order'}</td>
                         <td>{order.due_date}</td>
+                        <td>{order.payment_preference || '—'}</td>
+                        <td><ReferenceImage orderId={order.id} hasImage={order.has_reference_image} /></td>
                         <td>
                           <span className="status">{order.status}</span>
                         </td>

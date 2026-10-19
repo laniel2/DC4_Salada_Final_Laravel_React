@@ -78,8 +78,11 @@ FRONTEND ROLE WORKSPACES
   forms for customers, services, orders, order items, measurements, and payments.
 - Staff land on their assigned jobs page, where they can update progress,
   search customers, and view measurements.
-- Customers land on their account page to update contact details and view their
-  orders, due dates, payment history, and balance due.
+- Customers land on their account page with a welcome message, can edit contact
+  details, request a tailoring order with an optional private reference image,
+  choose a payment preference, and view order progress, due
+  dates, payment history, and balance due. Requests are assigned to the staff
+  member with the lightest order queue for review by the shop.
 
 API / POSTMAN
 - Import `backend/postman/Tailoring-Management-System.postman_collection.json`
@@ -100,8 +103,12 @@ API / POSTMAN
   assigned orders; update assigned order progress with
   `PATCH /api/orders/{order}/status`.
 - Customer: view/update their own `/api/customer/profile`, `/api/customer/orders`,
-  and `/api/customer/payments`. Order and payment responses include the
-  remaining balance.
+  `/api/customer/payments`, and `/api/customer/services`; submit a service request
+  with `POST /api/customer/orders` (optional `reference_image`, max 5 MB). Order
+  reference images are served only to the customer who owns the order or the
+  assigned shop team. Order and payment responses include the
+  remaining balance. The payment preference is saved with the request; payment
+  itself is confirmed and recorded by shop staff.
 - All role-specific endpoints require a Bearer token. Staff/customer roles are
   assigned server-side; public registration cannot select a privileged role.
 

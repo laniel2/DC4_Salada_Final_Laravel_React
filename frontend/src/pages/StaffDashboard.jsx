@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from '../services/api'
 import Message from '../components/Message'
+import ReferenceImage from '../components/ReferenceImage'
 
 const progressStatuses = [
   'In Progress',
@@ -98,8 +99,10 @@ export default function StaffDashboard() {
                 <tr>
                   <th>Order</th>
                   <th>Customer</th>
-                  <th>Garments / services</th>
+                  <th>Request</th>
                   <th>Due date</th>
+                  <th>Payment preference</th>
+                  <th>Reference</th>
                   <th>Progress</th>
                   <th>Update</th>
                 </tr>
@@ -110,10 +113,12 @@ export default function StaffDashboard() {
                     <td>#{order.id}</td>
                     <td>{order.customer?.name || 'Customer'}</td>
                     <td>
-                      {order.items?.map((item) => item.garment || item.service?.name).join(', ') ||
-                        'Tailoring order'}
+                      {order.items?.map((item) => `${item.service?.name || 'Tailoring'}: ${item.garment} × ${item.quantity}`).join(', ') || 'Tailoring order'}
+                      {order.notes && <small className="order-notes">{order.notes}</small>}
                     </td>
                     <td>{order.due_date}</td>
+                    <td>{order.payment_preference || '—'}</td>
+                    <td><ReferenceImage orderId={order.id} hasImage={order.has_reference_image} /></td>
                     <td>
                       <select
                         aria-label={`Progress for order ${order.id}`}

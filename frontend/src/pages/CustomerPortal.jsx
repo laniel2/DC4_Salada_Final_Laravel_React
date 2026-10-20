@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import api from '../services/api'
 import Message from '../components/Message'
 import { useAuth } from '../context/AuthContext'
@@ -12,6 +12,7 @@ const emptyOrderRequest = {
 
 export default function CustomerPortal() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { user } = useAuth()
   const draftPrefix = `tailoring-customer-draft-${user?.id || 'account'}`
   const [orderRequest, setOrderRequest, clearOrderDraft, hasOrderDraft] = usePersistentDraft(`${draftPrefix}-order`, emptyOrderRequest)
@@ -56,6 +57,10 @@ export default function CustomerPortal() {
       .finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    if (searchParams.get('newOrder') === '1') setShowOrderForm(true)
+  }, [searchParams])
+
   function updateOrderRequest(event) {
     setOrderRequest((current) => ({ ...current, [event.target.name]: event.target.value }))
   }
@@ -79,14 +84,12 @@ export default function CustomerPortal() {
       clearOrderDraft(emptyOrderRequest)
       setReferenceImage(null)
       try {
-      try {
         const [ordersResponse, dashboardResponse] = await Promise.all([
           api.get('/customer/orders'),
           api.get('/customer/dashboard'),
         ])
         setOrders(ordersResponse.data.data || [])
         setSummary(dashboardResponse.data)
-      } catch {}
       } catch {}
       if (createdOrder.payment_preference === 'GCash') {
         navigate(`/orders?payFor=${createdOrder.id}`)
@@ -111,7 +114,10 @@ export default function CustomerPortal() {
           <h1>Welcome, {customerName || 'Customer'}</h1>
           <p>Here’s your tailoring dashboard and a quick look at your orders.</p>
         </div>
-        <button type="button" onClick={() => setShowOrderForm((current) => !current)} aria-expanded={showOrderForm} aria-controls="customer-order-form">
+        <button type="button" onClick={() => {
+          setShowOrderForm((current) => !current)
+          if (searchParams.has('newOrder')) setSearchParams({}, { replace: true })
+        }} aria-expanded={showOrderForm} aria-controls="customer-order-form">
           {showOrderForm ? 'Close request form' : '＋ Request an order'}
         </button>
       </div>

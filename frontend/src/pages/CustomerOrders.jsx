@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import api from '../services/api'
 import Message from '../components/Message'
 import ReferenceImage from '../components/ReferenceImage'
@@ -10,6 +10,7 @@ const money = (amount) => `₱${Number(amount || 0).toLocaleString()}`
 const gcashQrUrl = import.meta.env.VITE_GCASH_QR_URL || ''
 
 export default function CustomerOrders() {
+  const navigate = useNavigate()
   const { user } = useAuth()
   const [paymentForm, setPaymentForm, clearPaymentDraft] = usePersistentDraft(
     `tailoring-gcash-payment-draft-${user?.id || 'account'}`,
@@ -22,6 +23,10 @@ export default function CustomerOrders() {
   const [busy, setBusy] = useState(false)
   const [payingOrderId, setPayingOrderId] = useState(null)
   const [proofImage, setProofImage] = useState(null)
+  const [services, setServices] = useState([])
+  const [editingOrderId, setEditingOrderId] = useState(null)
+  const [editDraft, setEditDraft] = useState(null)
+  const [savingEdit, setSavingEdit] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
 
   async function loadOrders() {
@@ -43,7 +48,55 @@ export default function CustomerOrders() {
       })
       .catch(() => setError('Could not load your orders. Please try again.'))
       .finally(() => setLoading(false))
+    api.get('/customer/services').then(({ data }) => setServices(data || [])).catch(() => {})
   }, [])
+
+  function startEditing(order) {
+    const item = order.items?.[0]
+    if (!item) return
+    setEditingOrderId(order.id)
+    setEditDraft({
+      service_id: String(item.service_id),
+      garment: item.garment || '',
+      quantity: item.quantity || 1,
+      due_date: order.due_date || '',
+      notes: order.notes || '',
+      payment_preference: order.payment_preference || 'Pay in person',
+    })
+    setError('')
+    setNotice('')
+  }
+
+  async function saveOrder(event, order) {
+    event.preventDefault()
+    setSavingEdit(true)
+    setError('')
+    try {
+      await api.patch(`/customer/orders/${order.id}`, editDraft)
+      await loadOrders()
+      setEditingOrderId(null)
+      setEditDraft(null)
+      setNotice(`Order #${order.id} was updated.`)
+    } catch (err) {
+      const errors = err.response?.data?.errors
+      setError(errors ? Object.values(errors).flat().join(' ') : err.response?.data?.message || 'Could not update this order.')
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
+  async function deleteOrder(order) {
+    if (!window.confirm(`Delete pending order #${order.id}? This cannot be undone.`)) return
+    setError('')
+    setNotice('')
+    try {
+      await api.delete(`/customer/orders/${order.id}`)
+      await loadOrders()
+      setNotice(`Order #${order.id} was deleted.`)
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not delete this order.')
+    }
+  }
 
   function beginPayment(order) {
     setPayingOrderId(order.id)
@@ -87,9 +140,9 @@ export default function CustomerOrders() {
 
   return (
     <>
-      <div className="page-heading">
-        <h1>Your orders</h1>
-        <p>Follow each request from review through completion.</p>
+      <div className="page-heading customer-orders-heading">
+        <div><h1>Your orders</h1><p>Follow each request from review through completion.</p></div>
+        <button type="button" onClick={() => navigate('/?newOrder=1')}>＋ Create order</button>
       </div>
       <Message error>{error}</Message>
       {notice && <div className="message">{notice}</div>}
@@ -97,7 +150,7 @@ export default function CustomerOrders() {
         <div className="customer-list-heading">
           <div>
             <h2>Order progress</h2>
-            <p>Due dates, payment balances, and reference images for your requests.</p>
+            <p>Due dates, payment balances, and reference images for your requests. Pending unpaid orders can be edited or deleted.</p>
           </div>
           {!loading && <span>{orders.length} {orders.length === 1 ? 'order' : 'orders'}</span>}
         </div>
@@ -112,6 +165,7 @@ export default function CustomerOrders() {
               const pendingVerification = order.payments?.some((payment) => payment.status === 'Pending Verification')
               const rejectedPayment = order.payments?.some((payment) => payment.status === 'Rejected')
               const payableByGcash = order.payment_preference === 'GCash' && Number(order.remaining_balance) > 0 && order.status !== 'Cancelled'
+              const canManageOrder = order.status === 'Pending' && (order.payments || []).length === 0
 
               return (
                 <article className="customer-order-card" key={order.id}>
@@ -129,6 +183,25 @@ export default function CustomerOrders() {
                     <div><small>Balance</small><strong>{money(order.remaining_balance)}</strong></div>
                     <div><small>Payment preference</small><strong>{order.payment_preference || '—'}</strong></div>
                   </div>
+                  {canManageOrder && <div className="customer-order-actions">
+                    {editingOrderId === order.id ? (
+                      <form className="customer-order-edit-form" onSubmit={(event) => saveOrder(event, order)}>
+                        <h3>Edit order request</h3>
+                        <label>Service<select value={editDraft.service_id} onChange={(event) => setEditDraft((current) => ({ ...current, service_id: event.target.value }))} required>
+                          {services.map((service) => <option key={service.id} value={service.id}>{service.name} · {money(service.base_price)}</option>)}
+                        </select></label>
+                        <label>Item or alteration<input value={editDraft.garment} onChange={(event) => setEditDraft((current) => ({ ...current, garment: event.target.value }))} maxLength="255" required /></label>
+                        <label>Quantity<input type="number" min="1" max="100" value={editDraft.quantity} onChange={(event) => setEditDraft((current) => ({ ...current, quantity: event.target.value }))} required /></label>
+                        <label>Due date<input type="date" min={new Date().toISOString().slice(0, 10)} value={editDraft.due_date} onChange={(event) => setEditDraft((current) => ({ ...current, due_date: event.target.value }))} required /></label>
+                        <label>Notes<textarea rows="3" maxLength="5000" value={editDraft.notes} onChange={(event) => setEditDraft((current) => ({ ...current, notes: event.target.value }))} /></label>
+                        <label>Payment preference<select value={editDraft.payment_preference} onChange={(event) => setEditDraft((current) => ({ ...current, payment_preference: event.target.value }))}><option>Pay in person</option><option>GCash</option></select></label>
+                        <div className="form-actions"><button disabled={savingEdit}>{savingEdit ? 'Saving...' : 'Save changes'}</button><button className="outline" type="button" onClick={() => { setEditingOrderId(null); setEditDraft(null) }}>Cancel</button></div>
+                      </form>
+                    ) : <div className="customer-order-manage-buttons">
+                      <button type="button" className="outline" onClick={() => startEditing(order)}>Edit request</button>
+                      <button type="button" className="danger-button" onClick={() => deleteOrder(order)}>Delete request</button>
+                    </div>}
+                  </div>}
                   {order.has_reference_image && <div className="customer-order-reference"><ReferenceImage orderId={order.id} hasImage={order.has_reference_image} customer /></div>}
 
                   {payableByGcash && (pendingVerification ? (

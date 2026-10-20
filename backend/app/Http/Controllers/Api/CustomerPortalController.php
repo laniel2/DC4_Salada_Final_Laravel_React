@@ -194,6 +194,62 @@ class CustomerPortalController extends Controller
             ->setStatusCode(201);
     }
 
+    public function updateOrder(Request $request, Order $order)
+    {
+        $customer = $this->customerUser($request)->customer;
+        abort_unless($order->customer_id === $customer->id, 404);
+        abort_unless(
+            $order->status === 'Pending' && !$order->payments()->exists(),
+            403,
+            'Only pending orders without payments can be changed.'
+        );
+
+        $data = $request->validate([
+            'service_id' => 'required|exists:services,id',
+            'garment' => 'required|string|max:255',
+            'quantity' => 'required|integer|min:1|max:100',
+            'due_date' => 'required|date|after_or_equal:today',
+            'notes' => 'nullable|string|max:5000',
+            'payment_preference' => 'required|in:Pay in person,GCash',
+        ]);
+
+        $service = Service::findOrFail($data['service_id']);
+        DB::transaction(function () use ($order, $data, $service) {
+            $item = $order->items()->oldest('id')->firstOrFail();
+            $item->update([
+                'service_id' => $service->id,
+                'garment' => $data['garment'],
+                'quantity' => $data['quantity'],
+                'price' => $service->base_price,
+            ]);
+            $order->update([
+                'due_date' => $data['due_date'],
+                'notes' => $data['notes'] ?? null,
+                'payment_preference' => $data['payment_preference'],
+                'total_amount' => $order->items()->sum(DB::raw('price * quantity')),
+            ]);
+        });
+
+        return new OrderResource($order->fresh()->load(['customer', 'user', 'items.service', 'payments']));
+    }
+
+    public function deleteOrder(Request $request, Order $order)
+    {
+        $customer = $this->customerUser($request)->customer;
+        abort_unless($order->customer_id === $customer->id, 404);
+        abort_unless(
+            $order->status === 'Pending' && !$order->payments()->exists(),
+            403,
+            'Only pending orders without payments can be deleted.'
+        );
+
+        $imagePath = $order->reference_image_path;
+        DB::transaction(fn () => $order->delete());
+        if ($imagePath) Storage::disk('local')->delete($imagePath);
+
+        return response()->noContent();
+    }
+
     public function referenceImage(Request $request, Order $order)
     {
         abort_unless($order->customer_id === $this->customerUser($request)->customer->id, 404);

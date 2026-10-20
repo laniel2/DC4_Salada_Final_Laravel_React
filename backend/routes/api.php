@@ -61,6 +61,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/profile/image', [CustomerPortalController::class, 'deleteProfileImage']);
         Route::patch('/password', [CustomerPortalController::class, 'changePassword']);
         Route::get('/orders', [CustomerPortalController::class, 'orders']);
+        Route::patch('/orders/{order}', [CustomerPortalController::class, 'updateOrder']);
+        Route::delete('/orders/{order}', [CustomerPortalController::class, 'deleteOrder']);
         Route::get('/orders/{order}/reference-image', [CustomerPortalController::class, 'referenceImage']);
         Route::get('/payments', [CustomerPortalController::class, 'payments']);
         Route::get('/services', [CustomerPortalController::class, 'services']);

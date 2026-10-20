@@ -92,11 +92,11 @@ Base URL: `http://127.0.0.1:8000/api`. Requests and responses use JSON unless an
 | GET | `/customer/dashboard` | Customer | Summary counts for active orders, completed orders, and orders with an open balance. |
 | GET, POST, DELETE | `/customer/profile/image` | Customer | View, upload, or remove own private profile image. Upload field: `profile_image` (image, up to 5 MB). |
 | PATCH | `/customer/password` | Customer | Change own password. Requires `current_password`, `password` (minimum 8 characters), and `password_confirmation`. |
-| GET | `/customer/orders` | Customer | List own orders and payment balance data. |
+| GET, PATCH, DELETE | `/customer/orders`, `/customer/orders/{id}` | Customer | List own orders; update or delete a request only while it is `Pending` and has no payment records. Updates recalculate the total using the selected service price and quantity. |
 | GET | `/customer/orders/{id}/reference-image` | Owning customer | Stream own private order reference image. |
 | GET | `/customer/payments` | Customer | List payments belonging to own orders. |
 | GET | `/customer/services` | Customer | List available services. |
-| POST | `/customer/orders` | Customer | Request order. Fields: `service_id`, `garment`, `quantity` (1–100), future/current `due_date`, `payment_preference` (`Pay in person` or `GCash`); optional `notes`, `reference_image` (image, up to 5 MB). |
+| POST | `/customer/orders` | Customer | Create an order request. Fields: `service_id`, `garment`, `quantity` (1–100), future/current `due_date`, `payment_preference` (`Pay in person` or `GCash`); optional `notes`, `reference_image` (image, up to 5 MB). |
 | POST | `/customer/orders/{id}/payments` | Owning customer | Submit GCash proof for a GCash order. Fields: `amount`, `reference_number`, `proof_image` (image, up to 5 MB). Payment remains `Pending Verification` until shop admin confirms/rejects it. |
 
 For order list filtering, staff/admin can pass `search`, `status`, `due_date`, and `page` to `GET /orders`. Order and payment resources omit stored file paths; they expose `has_reference_image` / `has_proof_image`. Customers see their remaining order balance based on confirmed payments.

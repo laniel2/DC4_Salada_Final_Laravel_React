@@ -6,7 +6,6 @@ import { useAuth } from '../context/AuthContext'
 import usePersistentDraft from '../hooks/usePersistentDraft'
 
 const money = (amount) => `₱${Number(amount || 0).toLocaleString()}`
-const emptyProfile = { name: '', email: '', phone: '', address: '' }
 const emptyOrderRequest = {
   service_id: '', garment: '', quantity: 1, due_date: '', notes: '', payment_preference: 'Pay in person',
 }
@@ -15,16 +14,15 @@ export default function CustomerPortal() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const draftPrefix = `tailoring-customer-draft-${user?.id || 'account'}`
-  const [profile, setProfile, clearProfileDraft, hasProfileDraft, replaceProfile] = usePersistentDraft(`${draftPrefix}-profile`, emptyProfile)
   const [orderRequest, setOrderRequest, clearOrderDraft, hasOrderDraft] = usePersistentDraft(`${draftPrefix}-order`, emptyOrderRequest)
-  const [savedProfile, setSavedProfile] = useState({ name: '', email: '', phone: '', address: '' })
+  const [customerName, setCustomerName] = useState(user?.name || '')
+  const [orders, setOrders] = useState([])
+  const [summary, setSummary] = useState({ active_orders: 0, completed_orders: 0, open_balances: 0 })
   const [services, setServices] = useState([])
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
   const [submittingOrder, setSubmittingOrder] = useState(false)
-  const [editingProfile, setEditingProfile] = useState(hasProfileDraft)
   const [showOrderForm, setShowOrderForm] = useState(hasOrderDraft)
   const [referenceImage, setReferenceImage] = useState(null)
   const [imagePreview, setImagePreview] = useState('')
@@ -44,26 +42,19 @@ export default function CustomerPortal() {
     Promise.all([
       api.get('/customer/profile'),
       api.get('/customer/services'),
+      api.get('/customer/orders'),
+      api.get('/customer/dashboard'),
     ])
-      .then(([profileResponse, servicesResponse]) => {
+      .then(([profileResponse, servicesResponse, ordersResponse, dashboardResponse]) => {
         const customer = profileResponse.data.customer || {}
-        const loadedProfile = {
-          name: profileResponse.data.name || customer.name || '',
-          email: profileResponse.data.email || '',
-          phone: customer.phone || '',
-          address: customer.address || '',
-        }
-        if (!hasProfileDraft) replaceProfile(loadedProfile)
-        setSavedProfile(loadedProfile)
+        setCustomerName(profileResponse.data.name || customer.name || user?.name || '')
         setServices(servicesResponse.data || [])
+        setOrders(ordersResponse.data.data || [])
+        setSummary(dashboardResponse.data)
       })
       .catch(() => setError('Could not load your account. Please try again.'))
       .finally(() => setLoading(false))
   }, [])
-
-  function updateField(event) {
-    setProfile((current) => ({ ...current, [event.target.name]: event.target.value }))
-  }
 
   function updateOrderRequest(event) {
     setOrderRequest((current) => ({ ...current, [event.target.name]: event.target.value }))
@@ -87,6 +78,16 @@ export default function CustomerPortal() {
       const createdOrder = data.data || data
       clearOrderDraft(emptyOrderRequest)
       setReferenceImage(null)
+      try {
+      try {
+        const [ordersResponse, dashboardResponse] = await Promise.all([
+          api.get('/customer/orders'),
+          api.get('/customer/dashboard'),
+        ])
+        setOrders(ordersResponse.data.data || [])
+        setSummary(dashboardResponse.data)
+      } catch {}
+      } catch {}
       if (createdOrder.payment_preference === 'GCash') {
         navigate(`/orders?payFor=${createdOrder.id}`)
       } else {
@@ -100,41 +101,15 @@ export default function CustomerPortal() {
     }
   }
 
-  async function saveProfile(event) {
-    event.preventDefault()
-    setSaving(true)
-    setError('')
-    setNotice('')
-
-    try {
-      const { data } = await api.patch('/customer/profile', profile)
-      const customer = data.customer || {}
-      const updatedProfile = {
-        name: data.name || customer.name || '',
-        email: data.email || '',
-        phone: customer.phone || '',
-        address: customer.address || '',
-      }
-      clearProfileDraft(updatedProfile)
-      setSavedProfile(updatedProfile)
-      setNotice('Your contact details have been updated.')
-      setEditingProfile(false)
-    } catch (err) {
-      const errors = err.response?.data?.errors
-      setError(errors ? Object.values(errors).flat().join(' ') : 'Could not update your details.')
-    } finally {
-      setSaving(false)
-    }
-  }
-
   if (loading) return <p>Loading your account...</p>
+
 
   return (
     <>
       <div className="page-heading customer-page-heading">
         <div>
-          <h1>Welcome, {profile.name || 'Customer'}</h1>
-          <p>Keep your tailoring requests and updates in one place.</p>
+          <h1>Welcome, {customerName || 'Customer'}</h1>
+          <p>Here’s your tailoring dashboard and a quick look at your orders.</p>
         </div>
         <button type="button" onClick={() => setShowOrderForm((current) => !current)} aria-expanded={showOrderForm} aria-controls="customer-order-form">
           {showOrderForm ? 'Close request form' : '＋ Request an order'}
@@ -144,52 +119,24 @@ export default function CustomerPortal() {
       <Message error>{error}</Message>
       {notice && <div className="message">{notice}</div>}
 
-      <section className="panel account-panel customer-contact-panel">
+      <section className="customer-dashboard-stats" aria-label="Order summary">
+        <article className="stat-card"><span>Active orders</span><strong>{summary.active_orders}</strong><small>In progress or awaiting pickup</small></article>
+        <article className="stat-card"><span>Completed</span><strong>{summary.completed_orders}</strong><small>Finished tailoring orders</small></article>
+        <article className="stat-card"><span>Open balances</span><strong>{summary.open_balances}</strong><small>Orders with a remaining balance</small></article>
+      </section>
+
+      <section className="panel customer-dashboard-preview">
         <div className="section-heading">
-          <div>
-            <h2>Contact details</h2>
-            <p>{profile.email}{profile.phone ? ` · ${profile.phone}` : ''}</p>
-          </div>
-          <button
-            type="button"
-            className="outline"
-            onClick={() => {
-              if (editingProfile) {
-                clearProfileDraft(savedProfile)
-                setEditingProfile(false)
-              } else {
-                setEditingProfile(true)
-              }
-            }}
-          >
-            {editingProfile ? 'Cancel editing' : 'Edit contact details'}
-          </button>
+          <div><h2>Recent orders</h2><p>Your latest requests and their current status.</p></div>
+          <button type="button" className="outline" onClick={() => navigate('/orders')}>View all orders</button>
         </div>
-        {editingProfile && <form className="profile-form" onSubmit={saveProfile}>
-          <label>
-            Name
-            <input name="name" value={profile.name} onChange={updateField} required />
-          </label>
-          <label>
-            Email
-            <input
-              name="email"
-              type="email"
-              value={profile.email}
-              onChange={updateField}
-              required
-            />
-          </label>
-          <label>
-            Phone
-            <input name="phone" value={profile.phone} onChange={updateField} />
-          </label>
-          <label>
-            Address
-            <input name="address" value={profile.address} onChange={updateField} />
-          </label>
-          <button disabled={saving}>{saving ? 'Saving...' : 'Save contact details'}</button>
-        </form>}
+        {orders.length === 0 ? <p>You haven’t placed an order yet. Start with a new order request below.</p> : (
+          <div className="customer-dashboard-orders">
+            {orders.slice(0, 3).map((order) => <article key={order.id}>
+              <strong>Order #{order.id}</strong><span>{order.status}</span><small>Due {order.due_date || 'date to be confirmed'} · Balance {money(order.remaining_balance)}</small>
+            </article>)}
+          </div>
+        )}
       </section>
 
       {showOrderForm && <section className="panel account-panel customer-request-panel" id="customer-order-form">

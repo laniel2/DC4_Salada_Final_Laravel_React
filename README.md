@@ -89,6 +89,9 @@ Base URL: `http://127.0.0.1:8000/api`. Requests and responses use JSON unless an
 | GET, POST, PATCH, DELETE | `/payments`, `/payments/{id}` | Admin | Payment CRUD. Fields include `order_id`, `amount`, `payment_date`, `method`, optional `status` (`Pending Verification`, `Confirmed`, `Rejected`) and `reference_number`. |
 | GET | `/payments/{id}/proof` | Admin | Stream private payment proof image if present. |
 | GET, PATCH | `/customer/profile` | Customer | Read/update own user/contact profile (`name`, `email`, `phone`, `address`). |
+| GET | `/customer/dashboard` | Customer | Summary counts for active orders, completed orders, and orders with an open balance. |
+| GET, POST, DELETE | `/customer/profile/image` | Customer | View, upload, or remove own private profile image. Upload field: `profile_image` (image, up to 5 MB). |
+| PATCH | `/customer/password` | Customer | Change own password. Requires `current_password`, `password` (minimum 8 characters), and `password_confirmation`. |
 | GET | `/customer/orders` | Customer | List own orders and payment balance data. |
 | GET | `/customer/orders/{id}/reference-image` | Owning customer | Stream own private order reference image. |
 | GET | `/customer/payments` | Customer | List payments belonging to own orders. |

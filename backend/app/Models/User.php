@@ -6,8 +6,8 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable {
  use HasApiTokens, HasFactory, Notifiable;
- protected $fillable = ['name','email','password','role','customer_id'];
- protected $hidden = ['password','remember_token'];
+ protected $fillable = ['name','email','password','role','customer_id','profile_image_path'];
+ protected $hidden = ['password','remember_token','profile_image_path'];
  protected function casts(): array { return ['email_verified_at'=>'datetime','password'=>'hashed']; }
  public function orders(){ return $this->hasMany(Order::class); }
  public function customer(){ return $this->belongsTo(Customer::class); }

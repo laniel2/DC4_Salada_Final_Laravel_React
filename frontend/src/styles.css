@@ -1001,3 +1001,133 @@ select {
     padding: 15px;
   }
 }
+
+.customer-dashboard-stats {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+  margin:18px 0;
+}
+
+.customer-dashboard-stats .stat-card {
+  min-width:0;
+}
+
+.customer-dashboard-stats .stat-card small {
+  display:block;
+  margin-top:8px;
+  color:#829087;
+}
+
+.customer-dashboard-preview {
+  margin:18px 0;
+}
+
+.customer-dashboard-orders {
+  display:grid;
+  gap:10px;
+}
+
+.customer-dashboard-orders article {
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:6px 12px;
+  padding:14px;
+  border:1px solid #e6ebe7;
+  border-radius:10px;
+}
+
+.customer-dashboard-orders article span {
+  color:#285b49;
+  font-size:13px;
+}
+
+.customer-dashboard-orders article small {
+  grid-column:1 / -1;
+  color:#829087;
+}
+
+.customer-profile-photo-panel {
+  display:flex;
+  align-items:center;
+  gap:22px;
+  margin:18px 0;
+}
+
+.customer-profile-photo-preview {
+  display:grid;
+  flex:0 0 112px;
+  width:112px;
+  height:112px;
+  overflow:hidden;
+  place-items:center;
+  border-radius:50%;
+  background:#e4eee7;
+  color:#285b49;
+  font-size:38px;
+  font-weight:700;
+}
+
+.customer-profile-photo-preview img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.avatar img {
+  width:100%;
+  height:100%;
+  border-radius:inherit;
+  object-fit:cover;
+}
+
+.customer-profile-photo-form {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:12px;
+}
+
+.customer-profile-photo-form > div {
+  flex:1 1 100%;
+}
+
+.customer-profile-photo-form h2,
+.customer-profile-panel h2,
+.customer-password-panel h2 {
+  margin-bottom:6px;
+}
+
+.customer-profile-photo-form p,
+.customer-password-panel > p {
+  margin:0 0 12px;
+  color:#829087;
+  font-size:13px;
+}
+
+.customer-profile-panel .profile-form > button,
+.customer-password-panel .profile-form > button {
+  align-self:end;
+}
+
+@media(max-width:700px) {
+  .customer-dashboard-stats {
+    grid-template-columns:1fr;
+  }
+
+  .customer-profile-photo-panel {
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .customer-profile-photo-form {
+    width:100%;
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .customer-profile-photo-form input,
+  .customer-profile-photo-form button {
+    width:100%;
+  }
+}

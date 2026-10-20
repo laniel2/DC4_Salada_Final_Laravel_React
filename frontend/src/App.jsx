@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react'
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
+import api from './services/api'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -8,6 +10,7 @@ import StaffDashboard from './pages/StaffDashboard'
 import CustomerPortal from './pages/CustomerPortal'
 import CustomerOrders from './pages/CustomerOrders'
 import CustomerPayments from './pages/CustomerPayments'
+import CustomerProfile from './pages/CustomerProfile'
 import AdminAccounts from './pages/AdminAccounts'
 import AdminOperations from './pages/AdminOperations'
 
@@ -16,6 +19,50 @@ function RoleHome({ role }) {
   if (role === 'staff') return <StaffDashboard />
 
   return <Dashboard />
+}
+
+function CustomerAvatar({ user }) {
+  const [imageUrl, setImageUrl] = useState('')
+
+  useEffect(() => {
+    let active = true
+    let currentUrl = ''
+
+    async function loadImage() {
+      try {
+        const { data: profile } = await api.get('/customer/profile')
+        if (!profile.has_profile_image) {
+          if (currentUrl) URL.revokeObjectURL(currentUrl)
+          currentUrl = ''
+          if (active) setImageUrl('')
+          return
+        }
+        const { data } = await api.get('/customer/profile/image', { responseType: 'blob' })
+        const nextUrl = URL.createObjectURL(data)
+        if (!active) {
+          URL.revokeObjectURL(nextUrl)
+          return
+        }
+        if (currentUrl) URL.revokeObjectURL(currentUrl)
+        currentUrl = nextUrl
+        setImageUrl(nextUrl)
+      } catch {
+        if (active) setImageUrl('')
+      }
+    }
+
+    const refreshImage = () => loadImage()
+    window.addEventListener('customer-profile-image-updated', refreshImage)
+    loadImage()
+
+    return () => {
+      active = false
+      window.removeEventListener('customer-profile-image-updated', refreshImage)
+      if (currentUrl) URL.revokeObjectURL(currentUrl)
+    }
+  }, [user?.id])
+
+  return <div className="avatar">{imageUrl ? <img src={imageUrl} alt="" /> : user?.name?.[0] || 'U'}</div>
 }
 
 function Layout() {
@@ -37,6 +84,7 @@ function Layout() {
           <>
             <Link className={location.pathname === '/orders' ? 'active' : ''} to="/orders">◷　Your orders</Link>
             <Link className={location.pathname === '/payments' ? 'active' : ''} to="/payments">＄　Payment history</Link>
+            <Link className={location.pathname === '/profile' ? 'active' : ''} to="/profile">♙　Profile</Link>
           </>
         )}
         {user?.role === 'admin' && (
@@ -51,13 +99,13 @@ function Layout() {
         )}
         <div className="sidebar-note">
           {user?.role === 'customer'
-            ? 'Track your tailoring orders, due dates, payments, and contact details.'
+            ? 'Track orders and payments, and manage your contact details in Profile.'
             : user?.role === 'staff'
               ? 'View assigned jobs, update progress, and look up customer measurements.'
               : 'Manage shop accounts, tailoring work, deadlines, and sales.'}
         </div>
         <div className="profile">
-          <div className="avatar">{user?.name?.[0] || 'U'}</div>
+          {user?.role === 'customer' ? <CustomerAvatar user={user} /> : <div className="avatar">{user?.name?.[0] || 'U'}</div>}
           <div>
             <b>{user?.name}</b>
             <small>{user?.role}</small>
@@ -77,6 +125,7 @@ function Layout() {
             <Route path="/" element={<RoleHome role={user?.role} />} />
             <Route path="/orders" element={user?.role === 'customer' ? <CustomerOrders /> : <Navigate to="/" replace />} />
             <Route path="/payments" element={user?.role === 'customer' ? <CustomerPayments /> : <Navigate to="/" replace />} />
+            <Route path="/profile" element={user?.role === 'customer' ? <CustomerProfile /> : <Navigate to="/" replace />} />
             <Route
               path="/manage"
               element={user?.role === 'admin' ? <AdminOperations /> : <Navigate to="/" replace />}

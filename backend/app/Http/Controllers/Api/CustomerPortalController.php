@@ -17,9 +17,26 @@ use Illuminate\Validation\ValidationException;
 
 class CustomerPortalController extends Controller
 {
+    public function dashboard(Request $request)
+    {
+        $orders = $this->customerUser($request)->customer->orders();
+
+        return response()->json([
+            'active_orders' => (clone $orders)->whereNotIn('status', ['Completed', 'Cancelled'])->count(),
+            'completed_orders' => (clone $orders)->where('status', 'Completed')->count(),
+            'open_balances' => (clone $orders)->whereRaw(
+                'total_amount > (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.order_id = orders.id AND payments.status = ?)',
+                ['Confirmed']
+            )->count(),
+        ]);
+    }
+
     public function profile(Request $request)
     {
-        return response()->json($this->customerUser($request)->load('customer'));
+        $user = $this->customerUser($request)->load('customer');
+        $user->setAttribute('has_profile_image', (bool) $user->profile_image_path);
+
+        return response()->json($user);
     }
 
     public function updateProfile(Request $request)
@@ -38,6 +55,54 @@ class CustomerPortalController extends Controller
         });
 
         return response()->json($user->fresh()->load('customer'));
+    }
+
+    public function profileImage(Request $request)
+    {
+        $user = $this->customerUser($request);
+        abort_unless($user->profile_image_path && Storage::disk('local')->exists($user->profile_image_path), 404);
+
+        return Storage::disk('local')->response($user->profile_image_path);
+    }
+
+    public function updateProfileImage(Request $request)
+    {
+        $request->validate(['profile_image' => 'required|image|max:5120']);
+        $user = $this->customerUser($request);
+        $oldPath = $user->profile_image_path;
+        $newPath = $request->file('profile_image')->store('customer-profile-images', 'local');
+
+        try {
+            $user->update(['profile_image_path' => $newPath]);
+        } catch (\Throwable $error) {
+            Storage::disk('local')->delete($newPath);
+            throw $error;
+        }
+
+        if ($oldPath) Storage::disk('local')->delete($oldPath);
+
+        return response()->json(['has_profile_image' => true]);
+    }
+
+    public function deleteProfileImage(Request $request)
+    {
+        $user = $this->customerUser($request);
+        if ($user->profile_image_path) Storage::disk('local')->delete($user->profile_image_path);
+        $user->update(['profile_image_path' => null]);
+
+        return response()->noContent();
+    }
+
+    public function changePassword(Request $request)
+    {
+        $data = $request->validate([
+            'current_password' => 'required|string|current_password',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $this->customerUser($request)->update(['password' => $data['password']]);
+
+        return response()->json(['message' => 'Password updated successfully.']);
     }
 
     public function orders(Request $request)

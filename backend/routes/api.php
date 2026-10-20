@@ -53,8 +53,13 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware('role:customer')->prefix('customer')->group(function () {
+        Route::get('/dashboard', [CustomerPortalController::class, 'dashboard']);
         Route::get('/profile', [CustomerPortalController::class, 'profile']);
         Route::patch('/profile', [CustomerPortalController::class, 'updateProfile']);
+        Route::get('/profile/image', [CustomerPortalController::class, 'profileImage']);
+        Route::post('/profile/image', [CustomerPortalController::class, 'updateProfileImage']);
+        Route::delete('/profile/image', [CustomerPortalController::class, 'deleteProfileImage']);
+        Route::patch('/password', [CustomerPortalController::class, 'changePassword']);
         Route::get('/orders', [CustomerPortalController::class, 'orders']);
         Route::get('/orders/{order}/reference-image', [CustomerPortalController::class, 'referenceImage']);
         Route::get('/payments', [CustomerPortalController::class, 'payments']);

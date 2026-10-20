@@ -1350,6 +1350,26 @@ select {
   font-size:12px;
 }
 
+.topbar-actions { display:flex; align-items:center; gap:10px }
+.notifications-menu { position:relative }
+.notifications-toggle { display:flex; align-items:center; gap:8px; white-space:nowrap }
+.notification-badge { min-width:20px; height:20px; display:inline-grid; place-items:center; padding:0 5px; border-radius:99px; background:#b65b42; color:#fff; font-size:11px }
+.notifications-popover { position:absolute; z-index:1000; top:calc(100% + 12px); right:0; width:min(380px,calc(100vw - 32px)); max-height:min(70vh,560px); overflow:auto; padding:16px; border:1px solid #e2eae4; border-radius:14px; background:#fff; color:#24312d; box-shadow:0 12px 36px rgba(18,42,28,.2) }
+.notifications-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:2px 0 13px; border-bottom:1px solid #edf0ed }
+.notifications-heading h2 { margin:0 0 3px; font-size:16px }
+.notifications-heading small,.notification-item small { color:#829087; font-size:11px }
+.notifications-mark-all { padding:5px 7px; background:transparent; color:#285b49; font-size:11px; white-space:nowrap }
+.notifications-list { display:grid }
+.notification-item { border-bottom:1px solid #edf0ed }
+.notification-item:last-child { border-bottom:0 }
+.notification-open { display:grid; gap:6px; width:100%; padding:13px 7px; border-radius:7px; background:transparent; color:#24312d; text-align:left }
+.notification-open:hover,.notification-item.is-unread .notification-open { background:#f2f7f3 }
+.notification-open strong { font-size:13px }
+.notification-open span { color:#5f6f66; font-size:12px; font-weight:400; line-height:1.45 }
+.notification-open em { color:#285b49; font-size:11px; font-style:normal }
+.notifications-empty,.notifications-error { margin:14px 4px 4px; color:#718078; font-size:13px }
+.notifications-error { color:#a13d2d }
+
 .topbar {
   padding-right:165px;
 }
@@ -1358,6 +1378,12 @@ select {
   .topbar {
     padding-right:150px;
   }
+
+  .topbar-actions { gap:6px }
+  .notifications-toggle { width:40px; height:38px; justify-content:center; padding:8px; overflow:visible; font-size:0 }
+  .notifications-toggle::before { content:'🔔'; font-size:16px }
+  .notification-badge { position:absolute; top:-6px; right:-6px; min-width:17px; height:17px; font-size:9px }
+  .notifications-popover { right:-70px }
 
   .theme-toggle {
     top:10px;
@@ -1387,6 +1413,7 @@ html.dark-mode .login-page {
 html.dark-mode .topbar,
 html.dark-mode .panel,
 html.dark-mode .stat-card,
+html.dark-mode .notifications-popover,
 html.dark-mode .customer-order-card,
 html.dark-mode .customer-dashboard-orders article,
 html.dark-mode .customer-page-heading,
@@ -1398,6 +1425,8 @@ html.dark-mode .gcash-qr-wrap {
 
 html.dark-mode .stat-card strong,
 html.dark-mode .panel h2,
+html.dark-mode .notifications-heading h2,
+html.dark-mode .notification-open,
 html.dark-mode .customer-order-top h3,
 html.dark-mode .customer-order-details strong,
 html.dark-mode .customer-dashboard-orders article strong,
@@ -1438,6 +1467,17 @@ html.dark-mode .login p,
 html.dark-mode .login small {
   color:#a6b5aa;
 }
+
+html.dark-mode .notifications-heading small,
+html.dark-mode .notification-item small,
+html.dark-mode .notification-open span,
+html.dark-mode .notifications-empty { color:#a6b5aa }
+html.dark-mode .notifications-heading,
+html.dark-mode .notification-item { border-color:#34453a }
+html.dark-mode .notification-open:hover,
+html.dark-mode .notification-item.is-unread .notification-open { background:#202c24 }
+html.dark-mode .notification-open em,
+html.dark-mode .notifications-mark-all { color:#acd6b7 }
 
 html.dark-mode input,
 html.dark-mode textarea,

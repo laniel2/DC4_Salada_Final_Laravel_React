@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaymentResource;
 use App\Models\Payment;
+use App\Support\ShopEmailNotifications;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -52,7 +53,12 @@ class PaymentController extends Controller
             'status' => 'sometimes|required|in:Pending Verification,Confirmed,Rejected',
             'reference_number' => 'sometimes|nullable|string|max:100',
         ]);
+        $oldStatus = $payment->status;
         $payment->update($data);
+
+        if (isset($data['status']) && $data['status'] !== $oldStatus && in_array($data['status'], ['Confirmed', 'Rejected'], true)) {
+            ShopEmailNotifications::paymentStatusChanged($payment, $data['status']);
+        }
 
         return new PaymentResource($payment->fresh());
     }

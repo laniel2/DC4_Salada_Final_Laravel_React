@@ -4,6 +4,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\User;
+use App\Support\ShopEmailNotifications;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -61,7 +62,12 @@ class OrderController extends Controller {
   if (array_key_exists('user_id', $data)) {
    $this->ensureAssignedUserIsStaff($data['user_id']);
   }
-  $order->update($data); return new OrderResource($order->fresh()->load(['customer','user','items.service','payments']));
+  $previousStatus = $order->status;
+  $order->update($data);
+  if (isset($data['status']) && $data['status'] !== $previousStatus) {
+   ShopEmailNotifications::orderStatusChanged($order, $data['status']);
+  }
+  return new OrderResource($order->fresh()->load(['customer','user','items.service','payments']));
  }
  public function updateStatus(Request $request, Order $order) {
   $this->ensureStaffAssignment($request, $order);
@@ -69,7 +75,10 @@ class OrderController extends Controller {
    ? 'required|in:In Progress,Ready for Fitting,Ready for Pickup,Completed'
    : 'required|in:Pending,In Progress,Ready for Fitting,Ready for Pickup,Completed,Cancelled';
   $data=$request->validate(['status'=>$allowedStatuses]);
-  $order->update($data); return response()->json($order);
+  $statusChanged = $order->status !== $data['status'];
+  $order->update($data);
+  if ($statusChanged) ShopEmailNotifications::orderStatusChanged($order, $data['status']);
+  return response()->json($order);
  }
  public function destroy(Order $order) { $order->delete(); return response()->noContent(); }
 

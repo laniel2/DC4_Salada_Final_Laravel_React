@@ -46,6 +46,8 @@ php artisan key:generate
 
 Edit `backend/.env` and set `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` for your database. The example defaults target a local MySQL server with database `tailoring_management`, user `root`, and a blank password.
 
+Email notifications are enabled for new order requests, order status changes, and GCash payment submission/review. For local development, leave `MAIL_MAILER=log`; messages are written to `backend/storage/logs/laravel.log`. To send real email, configure `MAIL_MAILER=smtp`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SCHEME`, and `MAIL_FROM_ADDRESS` in `backend/.env`, then run `php artisan optimize:clear`. Set `FRONTEND_URL` to the address customers use so email buttons open the right page.
+
 ```powershell
 php artisan migrate --seed
 php artisan serve

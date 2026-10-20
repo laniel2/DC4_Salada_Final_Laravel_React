@@ -10,6 +10,7 @@ use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\Service;
 use App\Models\User;
+use App\Support\ShopEmailNotifications;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -189,6 +190,8 @@ class CustomerPortalController extends Controller
             throw $error;
         }
 
+        ShopEmailNotifications::orderRequested($order);
+
         return (new OrderResource($order->load(['customer', 'user', 'items.service', 'payments'])))
             ->response()
             ->setStatusCode(201);
@@ -322,6 +325,8 @@ class CustomerPortalController extends Controller
             Storage::disk('local')->delete($proofPath);
             throw $error;
         }
+
+        ShopEmailNotifications::paymentSubmitted($payment);
 
         return (new PaymentResource($payment))->response()->setStatusCode(201);
     }

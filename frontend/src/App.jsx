@@ -13,6 +13,7 @@ import CustomerPayments from './pages/CustomerPayments'
 import CustomerProfile from './pages/CustomerProfile'
 import AdminAccounts from './pages/AdminAccounts'
 import AdminOperations from './pages/AdminOperations'
+import NotificationsPanel from './components/NotificationsPanel'
 
 function RoleHome({ role }) {
   if (role === 'customer') return <CustomerPortal />
@@ -116,9 +117,10 @@ function Layout() {
       <main className="main-area">
         <header className="topbar">
           <span></span>
-          <button className="outline" onClick={logout}>
-            Log out
-          </button>
+          <div className="topbar-actions">
+            <NotificationsPanel />
+            <button className="outline" onClick={logout}>Log out</button>
+          </div>
         </header>
         <div className="content">
           <Routes>

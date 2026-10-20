@@ -40,7 +40,15 @@ class CustomerController extends Controller
 
     public function show(Customer $customer)
     {
-        return response()->json($customer);
+        return response()->json(
+            $customer
+                ->load(['orders' => fn ($query) => $query
+                    ->select(['id', 'customer_id', 'due_date', 'status', 'total_amount'])
+                    ->latest()
+                    ->limit(10)
+                ])
+                ->loadCount(['orders', 'measurements'])
+        );
     }
 
     public function update(Request $request, Customer $customer)

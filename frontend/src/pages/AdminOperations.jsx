@@ -102,6 +102,8 @@ export default function AdminOperations() {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
+  const [viewingCustomer, setViewingCustomer] = useState(null)
+  const [loadingCustomer, setLoadingCustomer] = useState(false)
 
   const resource = resources[resourceKey]
 
@@ -128,6 +130,7 @@ export default function AdminOperations() {
     setRecords([])
     setPage(1)
     setHasMore(false)
+    setViewingCustomer(null)
     loadRecords()
   }, [resourceKey])
 
@@ -202,6 +205,20 @@ export default function AdminOperations() {
       setNotice(`${resource.label.slice(0, -1)} deleted.`)
     } catch (err) {
       setError(err.response?.data?.message || 'Could not delete this record. Check related orders or payments first.')
+    }
+  }
+
+  async function viewCustomer(customer) {
+    setViewingCustomer(null)
+    setLoadingCustomer(true)
+    setError('')
+    try {
+      const { data } = await api.get(`/customers/${customer.id}`)
+      setViewingCustomer(data)
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not load customer details.')
+    } finally {
+      setLoadingCustomer(false)
     }
   }
 
@@ -285,6 +302,7 @@ export default function AdminOperations() {
                 </div>
                 {resourceKey === 'payments' && record.has_proof_image && <PaymentProof paymentId={record.id} />}
                 <div className="row-actions">
+                  {resourceKey === 'customers' && <button className="small-button outline" onClick={() => viewCustomer(record)}>View</button>}
                   <button className="small-button" onClick={() => editRecord(record)}>Edit</button>
                   <button className="small-button danger-button" onClick={() => deleteRecord(record)}>Delete</button>
                 </div>
@@ -298,6 +316,27 @@ export default function AdminOperations() {
           </button>
         )}
       </section>
+      {resourceKey === 'customers' && loadingCustomer && <p>Loading customer details...</p>}
+      {resourceKey === 'customers' && viewingCustomer && <section className="panel admin-customer-details">
+        <div className="section-heading">
+          <div><h2>Customer details</h2><p>Customer #{viewingCustomer.id}</p></div>
+          <button type="button" className="outline" onClick={() => setViewingCustomer(null)}>Close</button>
+        </div>
+        <dl className="admin-customer-fields">
+          <div><dt>Name</dt><dd>{viewingCustomer.name}</dd></div>
+          <div><dt>Phone</dt><dd>{viewingCustomer.phone || 'Not provided'}</dd></div>
+          <div><dt>Address</dt><dd>{viewingCustomer.address || 'Not provided'}</dd></div>
+          <div><dt>Orders</dt><dd>{viewingCustomer.orders_count ?? viewingCustomer.orders?.length ?? 0}</dd></div>
+          <div><dt>Measurements</dt><dd>{viewingCustomer.measurements_count ?? 0}</dd></div>
+        </dl>
+        <h3>Recent orders</h3>
+        {!viewingCustomer.orders?.length ? <p>No orders for this customer.</p> : <div className="customer-dashboard-orders">
+          {viewingCustomer.orders.map((order) => <article key={order.id}>
+            <strong>Order #{order.id}</strong><span>{order.status}</span>
+            <small>Due {order.due_date || 'date not set'} · ₱{Number(order.total_amount || 0).toLocaleString()}</small>
+          </article>)}
+        </div>}
+      </section>}
     </>
   )
 }

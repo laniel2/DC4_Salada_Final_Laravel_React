@@ -1184,6 +1184,41 @@ select {
   align-self:end;
 }
 
+.admin-customer-details {
+  margin-top:18px;
+}
+
+.admin-customer-fields {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  margin:0 0 22px;
+}
+
+.admin-customer-fields div {
+  padding:12px;
+  border-radius:9px;
+  background:#f8faf8;
+}
+
+.admin-customer-fields dt {
+  margin-bottom:5px;
+  color:#829087;
+  font-size:12px;
+}
+
+.admin-customer-fields dd {
+  margin:0;
+  color:#304a3e;
+  font-weight:600;
+  overflow-wrap:anywhere;
+}
+
+.admin-customer-details > h3 {
+  margin:0 0 12px;
+  font-size:15px;
+}
+
 @media(max-width:700px) {
   .customer-dashboard-stats {
     grid-template-columns:1fr;
@@ -1203,5 +1238,9 @@ select {
   .customer-profile-photo-form input,
   .customer-profile-photo-form button {
     width:100%;
+  }
+
+  .admin-customer-fields {
+    grid-template-columns:1fr;
   }
 }

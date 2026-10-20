@@ -28,7 +28,7 @@ php artisan migrate --seed
 php artisan serve
 ```
 
-The API is now at `http://127.0.0.1:8000/api`. The seeder creates sample services, customers, measurements, orders, payments, and the admin/staff accounts listed below. `migrate --seed` is intended for a fresh/demo database; the seeder uses repeat-safe records for most sample data, and resets the seeded admin/staff passwords to `password` each time it runs.
+The API is now at `http://127.0.0.1:8000/api`. The seeder creates shop services, linked customer accounts, body measurements, assigned orders in several workflow states, and payment records. It uses stable email/order identifiers so rerunning it updates its demo data instead of adding duplicates. Seeded demo account passwords are reset to `password` each time it runs.
 
 ### 2. Frontend
 
@@ -51,8 +51,10 @@ Laravel CORS allows the origin in `backend/.env` `FRONTEND_URL` (default `http:/
 | --- | --- | --- |
 | Admin | `admin@example.com` | `password` |
 | Staff | `staff@example.com` | `password` |
+| Staff | `marco@example.com` | `password` |
+| Customer | `customer@example.com` | `password` |
 
-Customers can register from the app’s registration page. Public registration always creates a customer role; the demo seeder does not create a customer login. The seeded customer/order rows are sample shop records, not sign-in accounts.
+The seeder also creates five additional customer logins using the same demo password. Customers can register from the app’s registration page; public registration always creates a customer role.
 
 These credentials are for local demonstration only. Change or remove them before exposing the application to other users or using real customer data. Do not run the demo seeder against a production database.
 

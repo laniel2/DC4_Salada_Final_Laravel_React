@@ -144,26 +144,43 @@ function Layout() {
 
 export default function App() {
   const { user } = useAuth()
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('tailoring_theme') === 'dark')
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark-mode', darkMode)
+    localStorage.setItem('tailoring_theme', darkMode ? 'dark' : 'light')
+  }, [darkMode])
 
   return (
-    <Routes>
-      <Route
-        path="/login"
-        element={
-          localStorage.getItem('tailoring_token') && user ? (
-            <Navigate to="/" replace />
-          ) : (
-            <Login />
-          )
-        }
-      />
-      <Route
-        path="/register"
-        element={user ? <Navigate to="/" replace /> : <Register />}
-      />
-      <Route element={<ProtectedRoute />}>
-        <Route path="/*" element={<Layout />} />
-      </Route>
-    </Routes>
+    <>
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            localStorage.getItem('tailoring_token') && user ? (
+              <Navigate to="/" replace />
+            ) : (
+              <Login />
+            )
+          }
+        />
+        <Route
+          path="/register"
+          element={user ? <Navigate to="/" replace /> : <Register />}
+        />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/*" element={<Layout />} />
+        </Route>
+      </Routes>
+      <button
+        type="button"
+        className="theme-toggle"
+        aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+        aria-pressed={darkMode}
+        onClick={() => setDarkMode((current) => !current)}
+      >
+        {darkMode ? '☀ Light mode' : '☾ Dark mode'}
+      </button>
+    </>
   )
 }

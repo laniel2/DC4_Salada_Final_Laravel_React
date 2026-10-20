@@ -1307,3 +1307,195 @@ select {
     flex:1 1 100%;
   }
 }
+
+.theme-toggle {
+  position:fixed;
+  top:15px;
+  right:22px;
+  z-index:950;
+  padding:9px 13px;
+  border:1px solid #dce4df;
+  border-radius:999px;
+  background:#fff;
+  color:#304a3e;
+  box-shadow:0 3px 12px rgba(20,40,28,.12);
+  font-size:12px;
+}
+
+.topbar {
+  padding-right:165px;
+}
+
+@media(max-width:650px) {
+  .topbar {
+    padding-right:150px;
+  }
+
+  .theme-toggle {
+    top:10px;
+    right:12px;
+    padding:8px 10px;
+  }
+}
+
+html.dark-mode {
+  color-scheme:dark;
+  color:#e4ebe6;
+  background:#111814;
+}
+
+html.dark-mode body {
+  background:#111814;
+  color:#e4ebe6;
+}
+
+html.dark-mode .main-area,
+html.dark-mode .content,
+html.dark-mode .login-wrap,
+html.dark-mode .login-page {
+  background-color:#111814;
+}
+
+html.dark-mode .topbar,
+html.dark-mode .panel,
+html.dark-mode .stat-card,
+html.dark-mode .customer-order-card,
+html.dark-mode .customer-dashboard-orders article,
+html.dark-mode .customer-page-heading,
+html.dark-mode .gcash-qr-wrap {
+  background:#19231d;
+  border-color:#2c3a31;
+  color:#e4ebe6;
+}
+
+html.dark-mode .stat-card strong,
+html.dark-mode .panel h2,
+html.dark-mode .customer-order-top h3,
+html.dark-mode .customer-order-details strong,
+html.dark-mode .customer-dashboard-orders article strong,
+html.dark-mode .admin-customer-fields dd,
+html.dark-mode .admin-customer-details > h3,
+html.dark-mode .section-heading strong {
+  color:#e4ebe6;
+}
+
+html.dark-mode .page-heading p,
+html.dark-mode .section-heading p,
+html.dark-mode .stat-card span,
+html.dark-mode .customer-page-heading p,
+html.dark-mode .customer-list-heading p,
+html.dark-mode .customer-list-heading > span,
+html.dark-mode .customer-dashboard-stats .stat-card small,
+html.dark-mode .customer-dashboard-orders article small,
+html.dark-mode .customer-order-details small,
+html.dark-mode .customer-order-number,
+html.dark-mode .record-summary small,
+html.dark-mode .order-notes,
+html.dark-mode .measurement-card pre,
+html.dark-mode .form-hint,
+html.dark-mode .customer-password-panel > p,
+html.dark-mode .customer-profile-photo-form p,
+html.dark-mode .customer-request-panel > p,
+html.dark-mode .gcash-pending-message,
+html.dark-mode .login p,
+html.dark-mode .login small {
+  color:#a6b5aa;
+}
+
+html.dark-mode input,
+html.dark-mode textarea,
+html.dark-mode select,
+html.dark-mode .outline,
+html.dark-mode .theme-toggle {
+  background:#202c24;
+  border-color:#3a4a3e;
+  color:#e4ebe6;
+}
+
+html.dark-mode input::placeholder,
+html.dark-mode textarea::placeholder {
+  color:#9aa99e;
+}
+
+html.dark-mode .outline:hover,
+html.dark-mode .theme-toggle:hover {
+  background:#2a3b30;
+}
+
+html.dark-mode .login .password-toggle,
+html.dark-mode .auth-switch a {
+  color:#acd6b7;
+}
+
+html.dark-mode .customer-list-heading > span {
+  background:#26382c;
+  color:#b9dfc3;
+}
+
+html.dark-mode .auth-switch {
+  color:#c5d2c9;
+}
+
+html.dark-mode th,
+html.dark-mode .measurement-card,
+html.dark-mode .service-list > div,
+html.dark-mode .admin-customer-fields div,
+html.dark-mode .customer-order-edit-form {
+  background:#202c24;
+  border-color:#34453a;
+  color:#e4ebe6;
+}
+
+html.dark-mode td,
+html.dark-mode th {
+  border-color:#34453a;
+}
+
+html.dark-mode .status {
+  background:#4a3b1e;
+  color:#f0d28e;
+}
+
+html.dark-mode .message {
+  background:#1e3928;
+  color:#a7e0b9;
+}
+
+html.dark-mode .message.error {
+  background:#462724;
+  color:#ffc1b8;
+}
+
+html.dark-mode .customer-empty-state {
+  background:#19231d;
+  border-color:#3a4a3e;
+}
+
+html.dark-mode .record-row,
+html.dark-mode .customer-order-details,
+html.dark-mode .customer-gcash-payment,
+html.dark-mode .customer-profile-photo-panel {
+  border-color:#34453a;
+}
+
+html.dark-mode .customer-empty-state strong,
+html.dark-mode .customer-result,
+html.dark-mode .image-upload-field,
+html.dark-mode .customer-profile-photo-preview {
+  color:#d7e5da;
+}
+
+html.dark-mode .customer-result,
+html.dark-mode .image-drop-zone {
+  background:#202c24;
+  border-color:#415648;
+  color:#c7d8cb;
+}
+
+html.dark-mode .customer-profile-photo-preview {
+  background:#2a3b30;
+}
+
+html.dark-mode .theme-toggle {
+  box-shadow:0 3px 12px rgba(0,0,0,.35);
+}

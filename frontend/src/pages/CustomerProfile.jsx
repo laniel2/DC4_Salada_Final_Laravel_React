@@ -16,6 +16,7 @@ export default function CustomerProfile() {
   const [profile, setProfile] = useState(emptyProfile)
   const [profileImage, setProfileImage] = useState('')
   const [imageFile, setImageFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState('')
   const [password, setPassword] = useState(emptyPassword)
   const [loading, setLoading] = useState(true)
   const [savingProfile, setSavingProfile] = useState(false)
@@ -44,6 +45,17 @@ export default function CustomerProfile() {
   useEffect(() => () => {
     if (profileImage.startsWith('blob:')) URL.revokeObjectURL(profileImage)
   }, [profileImage])
+
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreview('')
+      return undefined
+    }
+
+    const previewUrl = URL.createObjectURL(imageFile)
+    setImagePreview(previewUrl)
+    return () => URL.revokeObjectURL(previewUrl)
+  }, [imageFile])
 
   function updateField(event) {
     setProfile((current) => ({ ...current, [event.target.name]: event.target.value }))
@@ -123,7 +135,7 @@ export default function CustomerProfile() {
 
       <section className="panel customer-profile-photo-panel">
         <div className="customer-profile-photo-preview">
-          {profileImage ? <img src={profileImage} alt="Your profile" /> : <span>{profile.name?.[0]?.toUpperCase() || 'C'}</span>}
+          {imagePreview || profileImage ? <img src={imagePreview || profileImage} alt="Profile photo preview" /> : <span>{profile.name?.[0]?.toUpperCase() || 'C'}</span>}
         </div>
         <form className="customer-profile-photo-form" onSubmit={saveImage}>
           <div><h2>Profile photo</h2><p>Choose an image up to 5 MB.</p></div>

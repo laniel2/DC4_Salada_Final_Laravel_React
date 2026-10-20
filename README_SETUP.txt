@@ -59,7 +59,11 @@ Default seeded login:
   Password: password
   Staff: staff@example.com
   Password: password
-Customer: register through the Create a customer account link.
+  Staff: marco@example.com
+  Password: password
+  Customer: customer@example.com
+  Password: password
+The seeder also creates five additional customer accounts, all with password `password`.
 Change these passwords before using real customer data.
 
 SETUP PART 3 — FRONTEND

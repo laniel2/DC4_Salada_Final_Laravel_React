@@ -66,7 +66,7 @@ function CustomerAvatar({ user }) {
   return <div className="avatar">{imageUrl ? <img src={imageUrl} alt="" /> : user?.name?.[0] || 'U'}</div>
 }
 
-function Layout() {
+function Layout({ darkMode, setDarkMode }) {
   const { user, logout } = useAuth()
   const location = useLocation()
 
@@ -116,10 +116,19 @@ function Layout() {
 
       <main className="main-area">
         <header className="topbar">
-          <span></span>
+          <span className="topbar-spacer"></span>
           <div className="topbar-actions">
             <NotificationsPanel />
-            <button className="outline" onClick={logout}>Log out</button>
+            <button
+              type="button"
+              className="outline theme-toggle"
+              aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-pressed={darkMode}
+              onClick={() => setDarkMode((current) => !current)}
+            >
+              {darkMode ? '☀ Light mode' : '☾ Dark mode'}
+            </button>
+            <button className="outline logout-button" onClick={logout}>Log out</button>
           </div>
         </header>
         <div className="content">
@@ -171,18 +180,18 @@ export default function App() {
           element={user ? <Navigate to="/" replace /> : <Register />}
         />
         <Route element={<ProtectedRoute />}>
-          <Route path="/*" element={<Layout />} />
+          <Route path="/*" element={<Layout darkMode={darkMode} setDarkMode={setDarkMode} />} />
         </Route>
       </Routes>
-      <button
+      {!user && <button
         type="button"
-        className="theme-toggle"
+        className="theme-toggle guest-theme-toggle"
         aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
         aria-pressed={darkMode}
         onClick={() => setDarkMode((current) => !current)}
       >
         {darkMode ? '☀ Light mode' : '☾ Dark mode'}
-      </button>
+      </button>}
     </>
   )
 }

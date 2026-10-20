@@ -1,6 +1,29 @@
 # Tailoring Management System
 
-A local tailoring shop management app with a React/Vite frontend and Laravel 12 JSON API backed by MySQL/MariaDB. It supports admin, staff, and customer workspaces, order tracking, measurements, payments, and GCash payment proof review.
+**Author:** [Add your name here]
+
+## Project theme
+
+An elegant neighborhood tailoring studio: forest green, warm cream, and gold accents frame a practical workspace for managing custom garments, fittings, alterations, and customer orders. The app includes a persistent dark mode for comfortable use in dim settings.
+
+## Features
+
+- Role-specific admin, staff, and customer workspaces
+- Customer accounts, profile details, private profile photos, and password changes
+- Customer order requests with reference images, status tracking, and eligible pending-order editing/deletion
+- Service catalog, garment measurements, staff assignments, and order management
+- Payment records, GCash receipt submission and verification, and remaining-balance tracking
+- Admin customer search, customer detail view, CRUD management, dashboard, and sales reports
+- Bearer-token authentication with role and ownership checks on the Laravel API
+
+## Technology stack
+
+- **Frontend:** React 18, Vite, React Router, Axios
+- **Backend:** PHP 8.2+, Laravel 12, Laravel Sanctum
+- **Database:** MySQL or MariaDB
+- **Development tools:** Composer, Node.js LTS, npm
+
+A local tailoring shop management app with a React/Vite frontend and Laravel 12 JSON API backed by MySQL/MariaDB.
 
 ## Requirements
 
@@ -53,6 +76,8 @@ Laravel CORS allows the origin in `backend/.env` `FRONTEND_URL` (default `http:/
 | Staff | `staff@example.com` | `password` |
 | Staff | `marco@example.com` | `password` |
 | Customer | `customer@example.com` | `password` |
+| Customer | `alaniel@gmail.com` | `password` |
+
 
 The seeder also creates five additional customer logins using the same demo password. Customers can register from the app’s registration page; public registration always creates a customer role.
 

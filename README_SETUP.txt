@@ -20,6 +20,7 @@ and API scaffolding are included. Review and test it locally, especially before
 your presentation. It uses Laravel Sanctum API tokens.
 
 SETUP PART 1 — DATABASE
+
 1. Open XAMPP Control Panel and start Apache and MySQL.
 2. Open http://localhost/phpmyadmin
 3. Click New and create database: tailoring_management
@@ -63,6 +64,7 @@ Default seeded login:
   Password: password
   Customer: customer@example.com
   Password: password
+
 The seeder also creates five additional customer accounts, all with password `password`.
 Change these passwords before using real customer data.
 
@@ -140,6 +142,3 @@ TROUBLESHOOTING
 - `401 Unauthorized`: log in again; frontend stores token in localStorage.
 - If using another port for Vite, update backend/config/cors.php allowed_origins.
 
-For your defense, be prepared to explain: React hooks, Axios interceptor, Sanctum
-token authentication, Laravel migrations/models/relationships, validation,
-role middleware, pagination, REST status codes, and CRUD.

@@ -172,6 +172,32 @@ button:disabled {
   margin:24px 0
 }
 
+.dashboard-charts {
+  display:grid;
+  grid-template-columns:minmax(0,1.25fr) minmax(320px,1fr);
+  gap:18px;
+  margin-bottom:20px
+}
+
+.dashboard-chart-panel { min-width:0 }
+.dashboard-chart-panel .section-heading { margin-bottom:8px }
+.dashboard-chart-panel .section-heading h2 { margin-bottom:5px }
+.dashboard-chart-panel .section-heading p { color:#829087; font-size:12px; margin:0 }
+.dashboard-chart-panel .section-heading > strong { color:#214d3d; white-space:nowrap }
+.dashboard-chart { width:100%; overflow:hidden }
+.dashboard-chart svg { display:block; width:100%; height:auto; min-height:190px }
+.chart-gridline { stroke:#e8eeea; stroke-width:1 }
+.chart-axis-label,.chart-date-label { fill:#829087; font-size:10px }
+.sales-chart-line { fill:none; stroke:#285b49; stroke-width:3; stroke-linecap:round; stroke-linejoin:round }
+.sales-chart-point { fill:#e4b96b; stroke:#285b49; stroke-width:2 }
+.order-status-chart { display:grid; gap:14px; padding:14px 0 4px }
+.status-chart-row { display:grid; grid-template-columns:minmax(110px,1.2fr) minmax(40px,2fr) 24px; align-items:center; gap:10px; font-size:12px }
+.status-chart-row > span { color:#5f6f66 }
+.status-chart-row strong { color:#214d3d; text-align:right }
+.status-chart-track { height:9px; border-radius:99px; background:#edf2ee; overflow:hidden }
+.status-chart-track span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,#285b49,#e4b96b) }
+.order-status-chart > small { color:#829087; text-align:right; margin-top:1px }
+
 .stat-card,.panel {
   background:#fff;
   border:1px solid #e6ebe7;
@@ -636,6 +662,8 @@ select {
   .stats {
   grid-template-columns:repeat(2,minmax(0,1fr))
 }
+
+.dashboard-charts { grid-template-columns:1fr }
 
 .sidebar {
   width:205px
@@ -1378,6 +1406,15 @@ html.dark-mode .admin-customer-details > h3,
 html.dark-mode .section-heading strong {
   color:#e4ebe6;
 }
+
+html.dark-mode .dashboard-chart-panel .section-heading > strong,
+html.dark-mode .status-chart-row strong { color:#e4ebe6 }
+html.dark-mode .status-chart-row > span { color:#c0cec4 }
+html.dark-mode .chart-gridline { stroke:#34453a }
+html.dark-mode .chart-axis-label,
+html.dark-mode .chart-date-label,
+html.dark-mode .order-status-chart > small { fill:#a6b5aa; color:#a6b5aa }
+html.dark-mode .status-chart-track { background:#2a382e }
 
 html.dark-mode .page-heading p,
 html.dark-mode .section-heading p,

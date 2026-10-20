@@ -4,6 +4,61 @@ import StatCard from '../components/StatCard'
 import Message from '../components/Message'
 import ReferenceImage from '../components/ReferenceImage'
 
+const money = (value) => `₱${Number(value || 0).toLocaleString()}`
+
+function SalesChart({ days }) {
+  const width = 560
+  const height = 220
+  const padding = { top: 16, right: 16, bottom: 38, left: 54 }
+  const values = days.map((day) => Number(day.total || 0))
+  const max = Math.max(...values, 1)
+  const chartWidth = width - padding.left - padding.right
+  const chartHeight = height - padding.top - padding.bottom
+  const points = days.map((day, index) => ({
+    x: padding.left + (days.length === 1 ? chartWidth / 2 : index * chartWidth / (days.length - 1)),
+    y: padding.top + chartHeight - Number(day.total || 0) / max * chartHeight,
+    day,
+  }))
+  const labels = [0, 0.5, 1].map((ratio) => ({ ratio, value: max * ratio }))
+  const line = points.map((point) => `${point.x},${point.y}`).join(' ')
+
+  return (
+    <div className="dashboard-chart" role="img" aria-label={`Daily confirmed sales chart for ${days.length} dates`}>
+      <svg viewBox={`0 0 ${width} ${height}`}>
+        {labels.map(({ ratio, value }) => {
+          const y = padding.top + chartHeight * (1 - ratio)
+          return <g key={ratio}><line className="chart-gridline" x1={padding.left} x2={width - padding.right} y1={y} y2={y} /><text className="chart-axis-label" x={padding.left - 8} y={y + 4} textAnchor="end">{money(value)}</text></g>
+        })}
+        <polyline className="sales-chart-line" points={line} />
+        {points.map(({ x, y, day }, index) => <g key={day.payment_date}>
+          <circle className="sales-chart-point" cx={x} cy={y} r="4"><title>{day.payment_date}: {money(day.total)}</title></circle>
+          {(index === 0 || index === points.length - 1 || index % Math.ceil(points.length / 6) === 0) && <text className="chart-date-label" x={x} y={height - 12} textAnchor="middle">{day.payment_date.slice(5)}</text>}
+        </g>)}
+      </svg>
+    </div>
+  )
+}
+
+function OrderStatusChart({ counts }) {
+  const statuses = ['Pending', 'In Progress', 'Ready for Fitting', 'Ready for Pickup', 'Completed', 'Cancelled']
+  const total = Object.values(counts || {}).reduce((sum, count) => sum + Number(count), 0)
+  const max = Math.max(...statuses.map((status) => Number(counts?.[status] || 0)), 1)
+
+  return (
+    <div className="order-status-chart" aria-label="Orders by status">
+      {statuses.map((status) => {
+        const count = Number(counts?.[status] || 0)
+        return <div className="status-chart-row" key={status}>
+          <span>{status}</span>
+          <div className="status-chart-track" role="img" aria-label={`${status}: ${count} orders`}><span style={{ width: `${count / max * 100}%` }} /></div>
+          <strong>{count}</strong>
+        </div>
+      })}
+      <small>{total} total orders</small>
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const [stats, setStats] = useState({
     total_orders: 0,
@@ -11,6 +66,7 @@ export default function Dashboard() {
     due_soon: 0,
     completed_orders: 0,
     payments_received: 0,
+    order_status_counts: {},
   })
   const [orders, setOrders] = useState([])
   const [salesReport, setSalesReport] = useState({ payments_received: 0, daily_sales: [] })
@@ -61,32 +117,27 @@ export default function Dashboard() {
             />
           </div>
 
-          <section className="panel data-panel">
+          <div className="dashboard-charts">
+          <section className="panel dashboard-chart-panel">
             <div className="section-heading">
               <div>
-                <h2>Sales report</h2>
-                <p>{salesReport.from} to {salesReport.to}</p>
+                <h2>Sales trend</h2>
+                <p>Confirmed payments · {salesReport.from} to {salesReport.to}</p>
               </div>
-              <strong>{`₱${Number(salesReport.payments_received || 0).toLocaleString()}`}</strong>
+              <strong>{money(salesReport.payments_received)}</strong>
             </div>
             {salesReport.daily_sales?.length > 0 ? (
-              <div className="table-scroll">
-                <table>
-                  <thead><tr><th>Date</th><th>Payments received</th></tr></thead>
-                  <tbody>
-                    {salesReport.daily_sales.map((day) => (
-                      <tr key={day.payment_date}>
-                        <td>{day.payment_date}</td>
-                        <td>₱{Number(day.total || 0).toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <SalesChart days={salesReport.daily_sales} />
             ) : (
               <p>No payments recorded for this period.</p>
             )}
           </section>
+
+          <section className="panel dashboard-chart-panel">
+            <div className="section-heading"><div><h2>Orders by status</h2><p>Current workload across the shop</p></div></div>
+            <OrderStatusChart counts={stats.order_status_counts} />
+          </section>
+          </div>
 
           <section className="panel">
             <h2>Recent orders</h2>

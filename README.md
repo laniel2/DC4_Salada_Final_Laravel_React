@@ -1,6 +1,6 @@
 # Tailoring Management System
 
-**Author:** [Add your name here]
+**Creator:** Alaniel G. Salada
 
 ## Project theme
 

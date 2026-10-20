@@ -104,14 +104,17 @@ export default function AdminOperations() {
   const [busy, setBusy] = useState(false)
   const [viewingCustomer, setViewingCustomer] = useState(null)
   const [loadingCustomer, setLoadingCustomer] = useState(false)
+  const [customerSearch, setCustomerSearch] = useState('')
 
   const resource = resources[resourceKey]
 
-  async function loadRecords(nextPage = 1, append = false) {
+  async function loadRecords(nextPage = 1, append = false, searchOverride = customerSearch) {
     if (append) setLoadingMore(true)
     else setLoading(true)
     try {
-      const { data } = await api.get(`/${resourceKey}`, { params: { page: nextPage } })
+      const params = { page: nextPage }
+      if (resourceKey === 'customers' && searchOverride.trim()) params.search = searchOverride.trim()
+      const { data } = await api.get(`/${resourceKey}`, { params })
       setRecords((current) => append ? [...current, ...data.data] : data.data || [])
       setPage(data.current_page || nextPage)
       setHasMore(Boolean(data.next_page_url))
@@ -131,6 +134,7 @@ export default function AdminOperations() {
     setPage(1)
     setHasMore(false)
     setViewingCustomer(null)
+    if (resourceKey !== 'customers') setCustomerSearch('')
     loadRecords()
   }, [resourceKey])
 
@@ -287,7 +291,26 @@ export default function AdminOperations() {
       </section>
 
       <section className="panel data-panel">
-        <h2>{resource.label}</h2>
+        <div className="admin-record-list-heading">
+          <h2>{resource.label}</h2>
+          {resourceKey === 'customers' && <form className="admin-customer-search" onSubmit={(event) => {
+            event.preventDefault()
+            loadRecords(1)
+          }}>
+            <input
+              type="search"
+              value={customerSearch}
+              onChange={(event) => setCustomerSearch(event.target.value)}
+              placeholder="Search by name or phone"
+              aria-label="Search customers by name or phone"
+            />
+            <button type="submit">Search</button>
+            {customerSearch && <button type="button" className="outline" onClick={() => {
+              setCustomerSearch('')
+              loadRecords(1, false, '')
+            }}>Clear</button>}
+          </form>}
+        </div>
         {loading ? (
           <p>Loading {resource.label.toLowerCase()}...</p>
         ) : records.length === 0 ? (
@@ -317,26 +340,30 @@ export default function AdminOperations() {
         )}
       </section>
       {resourceKey === 'customers' && loadingCustomer && <p>Loading customer details...</p>}
-      {resourceKey === 'customers' && viewingCustomer && <section className="panel admin-customer-details">
-        <div className="section-heading">
-          <div><h2>Customer details</h2><p>Customer #{viewingCustomer.id}</p></div>
-          <button type="button" className="outline" onClick={() => setViewingCustomer(null)}>Close</button>
-        </div>
-        <dl className="admin-customer-fields">
-          <div><dt>Name</dt><dd>{viewingCustomer.name}</dd></div>
-          <div><dt>Phone</dt><dd>{viewingCustomer.phone || 'Not provided'}</dd></div>
-          <div><dt>Address</dt><dd>{viewingCustomer.address || 'Not provided'}</dd></div>
-          <div><dt>Orders</dt><dd>{viewingCustomer.orders_count ?? viewingCustomer.orders?.length ?? 0}</dd></div>
-          <div><dt>Measurements</dt><dd>{viewingCustomer.measurements_count ?? 0}</dd></div>
-        </dl>
-        <h3>Recent orders</h3>
-        {!viewingCustomer.orders?.length ? <p>No orders for this customer.</p> : <div className="customer-dashboard-orders">
-          {viewingCustomer.orders.map((order) => <article key={order.id}>
-            <strong>Order #{order.id}</strong><span>{order.status}</span>
-            <small>Due {order.due_date || 'date not set'} · ₱{Number(order.total_amount || 0).toLocaleString()}</small>
-          </article>)}
-        </div>}
-      </section>}
+      {resourceKey === 'customers' && viewingCustomer && <div className="admin-modal-backdrop" onMouseDown={(event) => {
+        if (event.target === event.currentTarget) setViewingCustomer(null)
+      }}>
+        <section className="panel admin-customer-details" role="dialog" aria-modal="true" aria-labelledby="admin-customer-details-title">
+          <div className="section-heading">
+            <div><h2 id="admin-customer-details-title">Customer details</h2><p>Customer #{viewingCustomer.id}</p></div>
+            <button type="button" className="outline" onClick={() => setViewingCustomer(null)}>Close</button>
+          </div>
+          <dl className="admin-customer-fields">
+            <div><dt>Name</dt><dd>{viewingCustomer.name}</dd></div>
+            <div><dt>Phone</dt><dd>{viewingCustomer.phone || 'Not provided'}</dd></div>
+            <div><dt>Address</dt><dd>{viewingCustomer.address || 'Not provided'}</dd></div>
+            <div><dt>Orders</dt><dd>{viewingCustomer.orders_count ?? viewingCustomer.orders?.length ?? 0}</dd></div>
+            <div><dt>Measurements</dt><dd>{viewingCustomer.measurements_count ?? 0}</dd></div>
+          </dl>
+          <h3>Recent orders</h3>
+          {!viewingCustomer.orders?.length ? <p>No orders for this customer.</p> : <div className="customer-dashboard-orders">
+            {viewingCustomer.orders.map((order) => <article key={order.id}>
+              <strong>Order #{order.id}</strong><span>{order.status}</span>
+              <small>Due {order.due_date || 'date not set'} · ₱{Number(order.total_amount || 0).toLocaleString()}</small>
+            </article>)}
+          </div>}
+        </section>
+      </div>}
     </>
   )
 }

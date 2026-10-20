@@ -1184,8 +1184,23 @@ select {
   align-self:end;
 }
 
+.admin-modal-backdrop {
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:grid;
+  place-items:center;
+  padding:24px;
+  overflow-y:auto;
+  background:rgba(18,31,25,.58);
+}
+
 .admin-customer-details {
-  margin-top:18px;
+  width:min(100%,680px);
+  max-height:calc(100vh - 48px);
+  margin:0;
+  overflow-y:auto;
+  box-shadow:0 20px 70px rgba(0,0,0,.24);
 }
 
 .admin-customer-fields {
@@ -1219,6 +1234,35 @@ select {
   font-size:15px;
 }
 
+.admin-record-list-heading {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+}
+
+.admin-record-list-heading h2 {
+  margin:0;
+}
+
+.admin-customer-search {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.admin-customer-search input {
+  min-width:min(260px, 55vw);
+  padding:9px 11px;
+  border:1px solid #dbe4dc;
+  border-radius:8px;
+  outline-color:#285b49;
+}
+
+.admin-customer-search button {
+  padding:9px 12px;
+}
+
 @media(max-width:700px) {
   .customer-dashboard-stats {
     grid-template-columns:1fr;
@@ -1242,5 +1286,24 @@ select {
 
   .admin-customer-fields {
     grid-template-columns:1fr;
+  }
+
+  .admin-modal-backdrop {
+    align-items:start;
+    padding:14px;
+  }
+
+  .admin-customer-details {
+    max-height:calc(100vh - 28px);
+  }
+
+  .admin-record-list-heading {
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .admin-customer-search input {
+    min-width:0;
+    flex:1 1 100%;
   }
 }

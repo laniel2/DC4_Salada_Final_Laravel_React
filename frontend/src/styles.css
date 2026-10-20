@@ -393,12 +393,6 @@ select {
   color: #304a3e;
 }
 
-.demo-credentials {
-  display: grid;
-  gap: 7px;
-  margin: 10px 0 18px;
-}
-
 .auth-switch {
   text-align: center;
   font-size: 13px;

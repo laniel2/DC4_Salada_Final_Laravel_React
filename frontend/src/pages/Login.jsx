@@ -7,9 +7,9 @@ import usePersistentDraft from '../hooks/usePersistentDraft'
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
-  const [loginDraft, setLoginDraft] = usePersistentDraft('tailoring-login-draft', { email: 'admin@example.com' })
+  const [loginDraft, setLoginDraft] = usePersistentDraft('tailoring-login-draft-v2', { email: '' })
   const email = loginDraft.email
-  const [password, setPassword] = useState('password')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -70,10 +70,6 @@ export default function Login() {
           </div>
         </label>
         <button disabled={busy}>{busy ? 'Signing in...' : 'Sign in'}</button>
-        <div className="demo-credentials">
-          <small>Admin: admin@example.com / password</small>
-          <small>Staff: staff@example.com / password</small>
-        </div>
         <p className="auth-switch">
           Customer? <Link to="/register">Create a customer account</Link>
         </p>

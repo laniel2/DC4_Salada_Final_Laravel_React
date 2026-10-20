@@ -249,9 +249,47 @@ td,th {
   background:linear-gradient(135deg,#eaf1eb,#f8f5ec)
 }
 
+.login-page {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  padding:0;
+  background:#f5f7f5;
+}
+
+.login-page::before {
+  content:'';
+  display:block;
+  width:100%;
+  grid-column:1;
+  grid-row:1;
+  min-height:100vh;
+  background:url('/login-tailoring-background.avif') center/cover no-repeat #263a31;
+}
+
 .login {
   width:min(100%,430px);
-  padding:36px
+  padding:36px;
+  grid-column:2;
+  grid-row:1;
+  justify-self:center;
+}
+
+@media(max-width:700px) {
+  .login-page {
+    grid-template-columns:1fr;
+    grid-template-rows:minmax(180px, 32vh) 1fr;
+  }
+
+  .login-page::before {
+    grid-column:1;
+    grid-row:1;
+    min-height:0;
+  }
+
+  .login-page .login {
+    grid-column:1;
+    grid-row:2;
+    margin:24px auto;
+  }
 }
 
 .login .brand-mark {

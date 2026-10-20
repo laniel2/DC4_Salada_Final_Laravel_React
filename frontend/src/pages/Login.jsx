@@ -33,10 +33,10 @@ export default function Login() {
   }
 
   return (
-    <main className="login-wrap">
+    <main className="login-wrap login-page">
       <form className="panel login" onSubmit={submit}>
         <div className="brand-mark">TM</div>
-        <h1>Tailoring Management</h1>
+        <h1>A'S TAILORING</h1>
         <p>Sign in to manage shop work.</p>
         <Message error>{error}</Message>
 
